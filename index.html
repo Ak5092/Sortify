@@ -1,0 +1,1169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover"/>
+<title>Sortify</title>
+<link rel="manifest" href="manifest.json"/>
+<meta name="theme-color" content="#03091A"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="Sortify"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{
+  font-family:'Inter',-apple-system,sans-serif;
+  font-weight:300;
+  background:#03091A;
+  color:#E2E8F5;
+  min-height:100vh;min-height:-webkit-fill-available;
+  overscroll-behavior:none;
+  -webkit-tap-highlight-color:transparent;
+  -webkit-font-smoothing:antialiased;
+}
+button{cursor:pointer;border:none;background:none;font-family:inherit}
+a{color:inherit;text-decoration:none}
+img{display:block}
+
+/* ─── Design tokens ─── */
+:root{
+  --bg:#03091A;
+  --s:#08112B;        /* card surface */
+  --el:#0D1A38;       /* elevated */
+  --b:#4F8EF7;        /* blue — brighter than before */
+  --bl:#7EB3FF;       /* blue light */
+  --bd:#2563EB;       /* blue dark */
+  --c:#22D3EE;        /* cyan accent */
+  --brd:rgba(79,142,247,.15);
+  --brdb:rgba(79,142,247,.3);
+  --bdim:rgba(79,142,247,.1);
+  --bglow:rgba(79,142,247,.25);
+  --t1:#F0F5FF;       /* primary text — bright */
+  --t2:#94A3C0;       /* secondary */
+  --t3:#3D5070;       /* muted */
+  --red:#F87171;
+  --rdim:rgba(248,113,113,.1);
+  --r:14px;--rs:10px;
+  --sh:0 16px 48px rgba(0,0,0,.7);
+  --tr:.16s cubic-bezier(.4,0,.2,1);
+  --sat:env(safe-area-inset-top,0px);
+  --sab:env(safe-area-inset-bottom,0px);
+}
+
+#app{max-width:430px;margin:0 auto;min-height:100vh;min-height:-webkit-fill-available}
+.view{display:none;flex-direction:column;min-height:100vh;min-height:-webkit-fill-available}
+.view.active{display:flex}
+
+/* ════════════════════════════════
+   LANDING
+════════════════════════════════ */
+#login{
+  position:relative;overflow:hidden;
+  background:var(--bg);
+  padding:calc(var(--sat)+0px) 0 0;
+}
+
+/* Aura orbs — Lacuna element 01 */
+.aura{position:absolute;border-radius:50%;pointer-events:none;filter:blur(70px)}
+.aura-1{
+  width:400px;height:400px;top:-120px;left:-80px;
+  background:radial-gradient(circle,rgba(37,99,235,.28) 0%,transparent 65%);
+  animation:aura1 14s ease-in-out infinite;
+}
+.aura-2{
+  width:300px;height:300px;bottom:120px;right:-80px;
+  background:radial-gradient(circle,rgba(6,182,212,.18) 0%,transparent 65%);
+  animation:aura2 18s ease-in-out infinite;
+}
+.aura-3{
+  width:200px;height:200px;top:40%;left:35%;
+  background:radial-gradient(circle,rgba(79,142,247,.12) 0%,transparent 65%);
+  animation:aura3 22s ease-in-out infinite;
+}
+
+/* Vertical type columns — Lacuna element 09 */
+.vtype{
+  position:absolute;left:0;top:0;bottom:0;width:32px;
+  border-right:0.5px solid rgba(79,142,247,.1);
+  display:flex;flex-direction:column;pointer-events:none;
+}
+.vtype-col{
+  flex:1;display:flex;align-items:center;justify-content:center;
+  border-bottom:0.5px solid rgba(79,142,247,.06);
+  background:linear-gradient(180deg,rgba(37,99,235,.04) 0%,transparent 100%);
+}
+.vtype-word{
+  writing-mode:vertical-rl;transform:rotate(180deg);
+  font-size:8px;font-weight:200;letter-spacing:.35em;
+  text-transform:uppercase;color:rgba(79,142,247,.35);
+}
+
+/* Landing content */
+.land-inner{
+  position:relative;z-index:1;
+  display:flex;flex-direction:column;
+  min-height:100vh;min-height:-webkit-fill-available;
+  padding:calc(var(--sat)+52px) 28px calc(var(--sab)+40px) 52px;
+  gap:0;
+}
+
+/* Mark */
+.land-mark{display:flex;align-items:center;gap:12px;margin-bottom:56px}
+.mark-svg{animation:markSpin 16s linear infinite}
+.mark-name{font-size:18px;font-weight:200;letter-spacing:.08em;color:rgba(240,245,255,.6)}
+.mark-tag{font-size:9px;font-weight:300;letter-spacing:.2em;text-transform:uppercase;color:rgba(79,142,247,.5);margin-top:2px}
+
+/* Hero text */
+.land-hero{flex:1;display:flex;flex-direction:column;justify-content:center;gap:20px}
+.land-h1{
+  font-size:46px;font-weight:200;letter-spacing:-.03em;line-height:1.06;
+  color:var(--t1);
+}
+.land-h1 em{
+  font-style:normal;font-weight:400;
+  background:linear-gradient(135deg,#4F8EF7 0%,#22D3EE 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.land-p{font-size:15px;font-weight:300;color:var(--t2);line-height:1.7;max-width:300px}
+
+/* Wave ribbon animation — Lacuna element 06 */
+.land-wave{
+  width:calc(100% + 52px);margin-left:-52px;
+  height:48px;flex-shrink:0;margin-bottom:28px;
+  overflow:visible;
+}
+.land-wave path{stroke-dasharray:460;animation:waveScroll 4s linear infinite}
+.land-wave path:nth-child(2){animation-delay:-1s;opacity:.55}
+.land-wave path:nth-child(3){animation-delay:-2.2s;opacity:.3}
+
+/* CTA */
+.land-cta{display:flex;flex-direction:column;gap:10px}
+.btn-go{
+  width:100%;padding:18px 24px;
+  background:var(--b);color:#fff;
+  font-weight:400;font-size:16px;letter-spacing:.01em;
+  border-radius:var(--rs);
+  display:flex;align-items:center;justify-content:center;gap:10px;
+  transition:all var(--tr);
+  -webkit-appearance:none;
+  position:relative;overflow:hidden;
+}
+.btn-go::after{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(255,255,255,.08),transparent);
+  pointer-events:none;
+}
+.btn-go:active:not(:disabled){transform:scale(.98);background:var(--bd)}
+.btn-go:hover{box-shadow:0 0 36px var(--bglow)}
+.btn-go:disabled{opacity:.45;cursor:not-allowed}
+.btn-go.loading{background:var(--el);color:var(--bl);border:0.5px solid var(--brdb)}
+.land-note{text-align:center;font-size:11px;color:var(--t3);letter-spacing:.01em}
+
+/* Error inline on landing */
+.land-err{
+  display:none;
+  padding:12px 14px;
+  background:var(--rdim);border:0.5px solid rgba(248,113,113,.2);
+  border-radius:var(--rs);
+  font-size:13px;font-weight:300;color:#FCA5A5;line-height:1.55;
+}
+.land-err.on{display:block}
+
+/* ════════════════════════════════
+   AUTH
+════════════════════════════════ */
+#auth{align-items:center;justify-content:center;gap:14px;background:var(--bg)}
+.spin{width:40px;height:40px;border-radius:50%;border:1.5px solid var(--brd);border-top-color:var(--b);animation:spin .75s linear infinite}
+.spin-lbl{font-size:14px;font-weight:300;color:var(--t2);letter-spacing:.04em}
+
+/* ════════════════════════════════
+   SHARED HEADER
+════════════════════════════════ */
+.hdr{
+  position:sticky;top:0;z-index:20;flex-shrink:0;
+  padding:calc(var(--sat)+12px) 20px 12px;
+  display:flex;align-items:center;justify-content:space-between;
+  background:rgba(3,9,26,.88);
+  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  border-bottom:0.5px solid var(--brd);
+}
+.hdr-brand{display:flex;align-items:center;gap:9px}
+.hdr-name{font-size:17px;font-weight:200;letter-spacing:.05em;color:rgba(240,245,255,.6)}
+.hdr-right{display:flex;align-items:center;gap:8px}
+.chip{display:flex;align-items:center;gap:8px;padding:4px 12px 4px 4px;background:var(--s);border:0.5px solid var(--brd);border-radius:50px}
+.av{width:26px;height:26px;border-radius:50%;background:var(--el);overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:400;color:var(--bl);flex-shrink:0}
+.av img{width:100%;height:100%;object-fit:cover}
+.av-name{font-size:12px;font-weight:300;color:var(--t2);max-width:80px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.btn-out{padding:6px 12px;font-size:12px;font-weight:300;color:var(--t2);background:var(--s);border:0.5px solid var(--brd);border-radius:7px;transition:opacity var(--tr)}
+.btn-out:active{opacity:.5}
+
+/* ════════════════════════════════
+   SHARED CARD + SECTION LABEL
+════════════════════════════════ */
+.card{background:var(--s);border:0.5px solid var(--brd);border-radius:var(--r);overflow:hidden;position:relative}
+.slbl{font-size:10px;font-weight:500;letter-spacing:.2em;text-transform:uppercase;color:var(--b);display:block;margin-bottom:10px}
+.scroll-view{overflow-y:auto;-webkit-overflow-scrolling:touch;flex:1;padding-bottom:calc(var(--sab)+32px)}
+
+/* ════════════════════════════════
+   ANALYSE VIEW
+════════════════════════════════ */
+.an-body{padding:24px 20px;display:flex;flex-direction:column;gap:20px}
+.an-hero{text-align:center;padding:28px 0 8px}
+.an-ring{margin:0 auto 20px;width:68px;height:68px}
+.an-ring-outer{animation:spin 3s linear infinite}
+.an-ring-inner{animation:spin 5s linear infinite reverse;transform-origin:34px 34px}
+.an-hed{font-size:26px;font-weight:200;letter-spacing:-.02em;color:var(--t1);margin-bottom:6px}
+.an-sub{font-size:14px;font-weight:300;color:var(--t2);line-height:1.6}
+
+/* progress bar */
+.pbar-wrap{background:var(--s);border:0.5px solid var(--brd);border-radius:var(--r);padding:16px 18px}
+.pbar-top{display:flex;justify-content:space-between;margin-bottom:10px}
+.pbar-txt{font-size:13px;font-weight:300;color:var(--t2)}
+.pbar-pct{font-size:13px;font-weight:400;color:var(--bl);font-variant-numeric:tabular-nums}
+.pbar-track{height:3px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden}
+.pbar-fill{height:100%;border-radius:2px;background:linear-gradient(90deg,var(--bd),var(--b),var(--c));transition:width .5s ease;width:0}
+
+/* phases */
+.phase-list{display:flex;flex-direction:column;gap:6px}
+.phase{
+  display:flex;align-items:center;gap:12px;
+  padding:13px 16px;
+  background:var(--s);border:0.5px solid var(--brd);
+  border-radius:var(--rs);transition:all var(--tr);
+}
+.phase.act{border-color:var(--brdb);background:rgba(79,142,247,.06)}
+.phase.done{opacity:.5}
+.ph-dot{width:7px;height:7px;border-radius:50%;background:var(--t3);flex-shrink:0;transition:all var(--tr)}
+.phase.act .ph-dot{background:var(--b);animation:blink 1s ease-in-out infinite}
+.ph-lbl{font-size:14px;font-weight:300;color:var(--t2);flex:1}
+.phase.act .ph-lbl{color:var(--t1)}
+.ph-n{font-size:12px;font-weight:300;color:var(--t3);font-variant-numeric:tabular-nums}
+.phase.act .ph-n{color:var(--bl)}
+
+/* ════════════════════════════════
+   PREVIEW VIEW
+════════════════════════════════ */
+.pv-body{padding:20px;display:flex;flex-direction:column;gap:20px}
+
+/* summary */
+.sum-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.sum-cell{background:var(--s);border:0.5px solid var(--brd);border-radius:var(--rs);padding:14px 12px;text-align:center}
+.sum-n{font-size:28px;font-weight:200;letter-spacing:-.02em;color:var(--t1);line-height:1}
+.sum-lbl{font-size:10px;font-weight:400;letter-spacing:.12em;text-transform:uppercase;color:var(--t3);margin-top:5px}
+
+/* playlist cards */
+.plist{display:flex;flex-direction:column;gap:8px}
+.pcard{background:var(--s);border:0.5px solid var(--brd);border-radius:var(--r);overflow:hidden;transition:opacity var(--tr)}
+.pcard.off{opacity:.35;border-style:dashed}
+.pcard-head{display:flex;align-items:center;gap:12px;padding:14px 16px}
+.pcard-emoji{
+  font-size:22px;width:44px;height:44px;
+  display:flex;align-items:center;justify-content:center;
+  background:var(--el);border-radius:10px;flex-shrink:0;
+  border:0.5px solid var(--brd);
+}
+.pcard-info{flex:1;min-width:0}
+.pcard-input{
+  width:100%;background:transparent;border:none;
+  font-family:'Inter',sans-serif;font-size:15px;font-weight:300;color:var(--t1);
+  padding:0;outline:none;
+  border-bottom:1px solid transparent;transition:border-color var(--tr);
+}
+.pcard-input:focus{border-bottom-color:var(--brdb)}
+.pcard-count{font-size:12px;font-weight:300;color:var(--t3);margin-top:3px}
+.pcard-tog{position:relative;width:44px;height:26px;flex-shrink:0}
+.pcard-tog input{opacity:0;width:0;height:0;position:absolute}
+.tog-tr{position:absolute;inset:0;background:rgba(255,255,255,.05);border:0.5px solid rgba(255,255,255,.1);border-radius:50px;cursor:pointer;transition:all .2s ease}
+.tog-tr::after{content:'';position:absolute;top:3px;left:3px;width:18px;height:18px;background:rgba(255,255,255,.2);border-radius:50%;transition:all .2s cubic-bezier(.4,0,.2,1)}
+.pcard-tog input:checked+.tog-tr{background:rgba(79,142,247,.2);border-color:rgba(79,142,247,.4)}
+.pcard-tog input:checked+.tog-tr::after{transform:translateX(18px);background:var(--b)}
+/* sample tracks */
+.pcard-tracks{padding:0 16px 12px}
+.pcard-track{font-size:12px;font-weight:300;color:var(--t3);padding:2px 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pcard-track-name{color:var(--t2)}
+
+/* sticky action bar */
+.act-bar{
+  position:sticky;bottom:0;
+  background:rgba(3,9,26,.92);
+  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  border-top:0.5px solid var(--brd);
+  padding:14px 20px calc(var(--sab)+14px);
+  display:flex;gap:10px;z-index:10;flex-shrink:0;
+}
+.btn-main{
+  flex:1;padding:16px 20px;
+  background:var(--b);color:#fff;
+  font-weight:400;font-size:16px;
+  border-radius:var(--rs);
+  display:flex;align-items:center;justify-content:center;gap:9px;
+  transition:all var(--tr);-webkit-appearance:none;
+}
+.btn-main:active:not(:disabled){transform:scale(.98)}
+.btn-main:disabled{opacity:.4;cursor:not-allowed}
+.btn-main.going{background:var(--el);color:var(--bl);border:0.5px solid var(--brdb)}
+.btn-sec{padding:16px 18px;background:var(--s);color:var(--t2);font-weight:300;font-size:14px;border-radius:var(--rs);border:0.5px solid var(--brd);transition:opacity var(--tr)}
+.btn-sec:active{opacity:.5}
+.spin-ico{animation:spin 1s linear infinite}
+
+/* ════════════════════════════════
+   CREATING VIEW
+════════════════════════════════ */
+.cr-body{padding:24px 20px;display:flex;flex-direction:column;gap:8px}
+.cr-step{display:flex;align-items:center;gap:12px;padding:13px 16px;background:var(--s);border:0.5px solid var(--brd);border-radius:var(--rs);transition:all var(--tr)}
+.cr-step.ok{border-color:rgba(79,142,247,.25)}
+.cr-step.err{border-color:rgba(248,113,113,.2);background:var(--rdim)}
+.cr-emoji{font-size:20px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;background:var(--el);border-radius:8px;flex-shrink:0;font-size:18px}
+.cr-label{font-size:14px;font-weight:300;color:var(--t2);flex:1}
+.cr-status{font-size:12px;font-weight:300}
+.cr-step.ok .cr-status{color:var(--bl)}
+.cr-step.err .cr-status{color:var(--red)}
+.cr-spinner{width:16px;height:16px;border-radius:50%;border:1.5px solid var(--brd);border-top-color:var(--b);animation:spin .7s linear infinite;flex-shrink:0}
+
+/* ════════════════════════════════
+   DONE VIEW
+════════════════════════════════ */
+.done-body{padding:24px 20px;display:flex;flex-direction:column;gap:16px}
+.done-hero{text-align:center;padding:32px 0 16px}
+.done-check{width:60px;height:60px;margin:0 auto 18px;border-radius:50%;background:var(--bdim);border:0.5px solid var(--brdb);display:flex;align-items:center;justify-content:center}
+.done-hed{font-size:26px;font-weight:200;letter-spacing:-.02em;color:var(--t1);margin-bottom:8px}
+.done-sub{font-size:14px;font-weight:300;color:var(--t2);line-height:1.65}
+.done-list{display:flex;flex-direction:column;gap:8px}
+.done-row{display:flex;align-items:center;gap:12px;padding:12px 16px;background:var(--s);border:0.5px solid var(--brd);border-radius:var(--rs)}
+.done-emoji{font-size:18px;width:34px;height:34px;display:flex;align-items:center;justify-content:center;background:var(--el);border-radius:8px}
+.done-name{font-size:14px;font-weight:300;color:var(--t2);flex:1}
+.done-cnt{font-size:13px;font-weight:400;color:var(--bl)}
+.btn-again{width:100%;padding:17px;background:var(--b);color:#fff;font-weight:400;font-size:16px;border-radius:var(--rs);display:flex;align-items:center;justify-content:center;gap:9px;transition:all var(--tr);-webkit-appearance:none;margin-top:4px}
+.btn-again:active{transform:scale(.98)}
+
+/* ════════════════════════════════
+   ERROR VIEW
+════════════════════════════════ */
+#error{align-items:center;justify-content:center;padding:44px 28px;text-align:center;gap:18px;background:var(--bg)}
+.err-ico{width:60px;height:60px;border-radius:50%;background:var(--rdim);border:0.5px solid rgba(248,113,113,.2);display:flex;align-items:center;justify-content:center;margin:0 auto}
+.err-title{font-size:22px;font-weight:200;letter-spacing:-.02em;color:var(--t1)}
+.err-body{font-size:14px;font-weight:300;color:var(--t2);line-height:1.7;white-space:pre-line;max-width:340px}
+.err-btns{display:flex;flex-direction:column;gap:10px;width:100%;max-width:300px}
+.btn-err-p{width:100%;padding:16px;background:var(--b);color:#fff;font-weight:400;font-size:15px;border-radius:var(--rs);display:flex;align-items:center;justify-content:center;gap:8px;transition:all var(--tr);-webkit-appearance:none}
+.btn-err-p:active{transform:scale(.98)}
+.btn-err-s{width:100%;padding:14px;background:var(--s);color:var(--t2);font-weight:300;font-size:14px;border-radius:var(--rs);border:0.5px solid var(--brd);text-align:center;transition:opacity var(--tr)}
+.btn-err-s:active{opacity:.5}
+.err-hint{font-size:11px;color:var(--t3);line-height:1.7;max-width:300px}
+
+/* ════════════════════════════════
+   TOAST
+════════════════════════════════ */
+#tc{position:fixed;bottom:calc(var(--sab)+18px);left:50%;transform:translateX(-50%);z-index:100;pointer-events:none;display:flex;flex-direction:column;align-items:center;gap:8px;width:calc(100% - 40px);max-width:390px}
+.toast{padding:11px 18px;border-radius:8px;font-size:13px;font-weight:300;box-shadow:var(--sh);animation:toastIn .25s ease both;border:0.5px solid;max-width:100%}
+.toast.ok{background:#071628;color:var(--bl);border-color:var(--brdb)}
+.toast.err{background:#1c0909;color:#FCA5A5;border-color:rgba(248,113,113,.25)}
+.toast.warn{background:#1a1500;color:#FDE68A;border-color:rgba(253,230,138,.2)}
+.toast.out{animation:toastOut .25s ease forwards}
+
+/* ════════════════════════════════
+   ANIMATIONS
+════════════════════════════════ */
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes markSpin{to{transform:rotate(360deg)}}
+@keyframes aura1{0%,100%{transform:translate(0,0) scale(1)}40%{transform:translate(24px,-18px) scale(1.06)}70%{transform:translate(-12px,22px) scale(.95)}}
+@keyframes aura2{0%,100%{transform:translate(0,0)}35%{transform:translate(-20px,14px) scale(1.05)}70%{transform:translate(16px,-20px) scale(.97)}}
+@keyframes aura3{0%,100%{transform:translate(0,0)}50%{transform:translate(30px,-24px)}}
+@keyframes waveScroll{from{stroke-dashoffset:920}to{stroke-dashoffset:0}}
+@keyframes blink{0%,100%{opacity:.3;transform:scale(.8)}50%{opacity:1;transform:scale(1)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@keyframes a{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes toastIn{from{opacity:0;transform:translateY(14px) scale(.96)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes toastOut{to{opacity:0;transform:translateY(14px) scale(.96)}}
+.a1{animation:a .3s .05s both}.a2{animation:a .3s .12s both}
+.a3{animation:a .3s .19s both}.a4{animation:a .3s .26s both}
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- ══ LOGIN ══ -->
+<div id="login" class="view active">
+  <!-- Aura orbs (Lacuna element 01) -->
+  <div class="aura aura-1"></div>
+  <div class="aura aura-2"></div>
+  <div class="aura aura-3"></div>
+  <!-- Vertical type (Lacuna element 09) -->
+  <div class="vtype">
+    <div class="vtype-col"><span class="vtype-word">SORT</span></div>
+    <div class="vtype-col"><span class="vtype-word">SCAN</span></div>
+    <div class="vtype-col"><span class="vtype-word">SHIP</span></div>
+  </div>
+
+  <div class="land-inner">
+    <!-- Mark -->
+    <div class="land-mark">
+      <svg class="mark-svg" width="36" height="36" viewBox="0 0 100 100" fill="none">
+        <circle cx="50" cy="50" r="40" stroke="rgba(79,142,247,.08)" stroke-width=".5"/>
+        <circle cx="50" cy="50" r="32" stroke="#4F8EF7" stroke-width="1.8"
+          stroke-dasharray="168 34" stroke-linecap="round" transform="rotate(-90 50 50)"/>
+        <circle cx="50" cy="50" r="20" stroke="rgba(126,179,255,.28)" stroke-width="1"
+          stroke-dasharray="105 21" stroke-linecap="round" transform="rotate(90 50 50)"/>
+        <circle cx="50" cy="50" r="4.5" fill="#4F8EF7"/>
+        <circle cx="50" cy="50" r="4.5" fill="none" stroke="rgba(79,142,247,.22)" stroke-width="7"/>
+      </svg>
+      <div>
+        <div class="mark-name">Sortify</div>
+        <div class="mark-tag">for Spotify</div>
+      </div>
+    </div>
+
+    <!-- Hero -->
+    <div class="land-hero">
+      <h1 class="land-h1">Your music,<br><em>perfectly sorted.</em></h1>
+      <p class="land-p">Sortify reads your Liked Songs, detects genre and vibe using Spotify's own data, then builds and creates playlists for you — automatically.</p>
+    </div>
+
+    <!-- Wave ribbon (Lacuna element 06) — sits above CTA -->
+    <svg class="land-wave" viewBox="0 0 430 48" fill="none" preserveAspectRatio="none">
+      <path d="M-20 32 Q60 12 130 28 Q200 44 280 20 Q350 4 450 24"
+        stroke="url(#wg1)" stroke-width="14" fill="none"/>
+      <path d="M-20 36 Q60 16 130 32 Q200 48 280 24 Q350 8 450 28"
+        stroke="url(#wg2)" stroke-width="2" fill="none"/>
+      <path d="M-20 24 Q80 40 180 18 Q270 2 380 30 Q420 38 450 22"
+        stroke="url(#wg3)" stroke-width="8" fill="none"/>
+      <defs>
+        <linearGradient id="wg1" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stop-color="#2563EB" stop-opacity="0"/>
+          <stop offset="30%" stop-color="#4F8EF7" stop-opacity=".6"/>
+          <stop offset="65%" stop-color="#22D3EE" stop-opacity=".5"/>
+          <stop offset="100%" stop-color="#22D3EE" stop-opacity="0"/>
+        </linearGradient>
+        <linearGradient id="wg2" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stop-color="#fff" stop-opacity="0"/>
+          <stop offset="45%" stop-color="#fff" stop-opacity=".4"/>
+          <stop offset="100%" stop-color="#fff" stop-opacity="0"/>
+        </linearGradient>
+        <linearGradient id="wg3" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stop-color="#1D4ED8" stop-opacity="0"/>
+          <stop offset="50%" stop-color="#4F8EF7" stop-opacity=".25"/>
+          <stop offset="100%" stop-color="#1D4ED8" stop-opacity="0"/>
+        </linearGradient>
+      </defs>
+    </svg>
+
+    <!-- CTA -->
+    <div class="land-cta">
+      <!-- Error box — visible on failure instead of silent nothing -->
+      <div class="land-err" id="land-err"></div>
+
+      <button class="btn-go" id="btn-connect" onclick="handleConnectClick()">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+          <circle cx="10" cy="10" r="10" fill="rgba(255,255,255,.12)"/>
+          <path d="M14 7.5c-2-1-4.2-1.2-6.2-.8" stroke="white" stroke-width="1.4" stroke-linecap="round"/>
+          <path d="M13.2 9.8c-1.7-.9-3.5-1-5.2-.6" stroke="white" stroke-width="1.4" stroke-linecap="round"/>
+          <path d="M12.4 12.1c-1.3-.7-2.8-.8-4.2-.5" stroke="white" stroke-width="1.4" stroke-linecap="round"/>
+        </svg>
+        <span id="btn-connect-label">Connect with Spotify</span>
+      </button>
+      <p class="land-note">OAuth 2.0 PKCE · your data never leaves your device</p>
+    </div>
+  </div>
+</div>
+
+<!-- ══ AUTH ══ -->
+<div id="auth" class="view">
+  <div class="spin"></div>
+  <span class="spin-lbl">Connecting…</span>
+</div>
+
+<!-- ══ ANALYSE ══ -->
+<div id="analyze" class="view">
+  <div class="hdr">
+    <div class="hdr-brand">
+      <svg width="20" height="20" viewBox="0 0 100 100" fill="none">
+        <circle cx="50" cy="50" r="32" stroke="#4F8EF7" stroke-width="2.5" stroke-dasharray="168 34" stroke-linecap="round" transform="rotate(-90 50 50)"/>
+        <circle cx="50" cy="50" r="4.5" fill="#4F8EF7"/>
+      </svg>
+      <span class="hdr-name">Analysing…</span>
+    </div>
+    <div class="hdr-right">
+      <div class="chip"><div class="av" id="av-a">—</div><span class="av-name" id="an-a">—</span></div>
+      <button class="btn-out" onclick="doLogout()">Sign out</button>
+    </div>
+  </div>
+  <div class="scroll-view">
+    <div class="an-body">
+      <div class="an-hero a1">
+        <div class="an-ring">
+          <svg class="an-ring-outer" width="68" height="68" viewBox="0 0 68 68" fill="none">
+            <circle cx="34" cy="34" r="28" stroke="rgba(79,142,247,.1)" stroke-width=".5"/>
+            <circle cx="34" cy="34" r="22" stroke="#4F8EF7" stroke-width="1.6"
+              stroke-dasharray="114 24" stroke-linecap="round" transform="rotate(-90 34 34)"/>
+            <circle class="an-ring-inner" cx="34" cy="34" r="13" stroke="rgba(126,179,255,.25)" stroke-width="1"
+              stroke-dasharray="68 14" stroke-linecap="round" transform="rotate(90 34 34)"/>
+            <circle cx="34" cy="34" r="3" fill="#4F8EF7"/>
+          </svg>
+        </div>
+        <div class="an-hed" id="an-hed">Scanning your library</div>
+        <div class="an-sub" id="an-sub">Loading your Liked Songs…</div>
+        <div style="font-size:11px;color:var(--t3);margin-top:8px" id="an-note">Large libraries take 1–2 minutes — genre detection is one request per artist</div>
+      </div>
+      <div class="pbar-wrap a2">
+        <div class="pbar-top">
+          <span class="pbar-txt" id="ptxt">Starting…</span>
+          <span class="pbar-pct" id="ppct">0%</span>
+        </div>
+        <div class="pbar-track"><div class="pbar-fill" id="pfill"></div></div>
+      </div>
+      <div class="phase-list a3" id="phases">
+        <div class="phase act" id="ph0"><div class="ph-dot"></div><span class="ph-lbl">Loading Liked Songs</span><span class="ph-n" id="ph0n">—</span></div>
+        <div class="phase" id="ph1"><div class="ph-dot"></div><span class="ph-lbl">Audio features <span style="opacity:.5;font-size:11px">(optional)</span></span><span class="ph-n" id="ph1n">—</span></div>
+        <div class="phase" id="ph2"><div class="ph-dot"></div><span class="ph-lbl">Artist genres <span style="opacity:.5;font-size:11px">(one per artist)</span></span><span class="ph-n" id="ph2n">—</span></div>
+        <div class="phase" id="ph3"><div class="ph-dot"></div><span class="ph-lbl">Classifying tracks</span><span class="ph-n" id="ph3n">—</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ PREVIEW ══ -->
+<div id="preview" class="view">
+  <div class="hdr">
+    <div class="hdr-brand">
+      <svg width="20" height="20" viewBox="0 0 100 100" fill="none">
+        <circle cx="50" cy="50" r="32" stroke="#4F8EF7" stroke-width="2.5" stroke-dasharray="168 34" stroke-linecap="round" transform="rotate(-90 50 50)"/>
+        <circle cx="50" cy="50" r="4.5" fill="#4F8EF7"/>
+      </svg>
+      <span class="hdr-name">Preview</span>
+    </div>
+    <div class="hdr-right">
+      <div class="chip"><div class="av" id="av-p">—</div><span class="av-name" id="an-p">—</span></div>
+      <button class="btn-out" onclick="doLogout()">Sign out</button>
+    </div>
+  </div>
+  <div class="scroll-view">
+    <div class="pv-body">
+      <div class="a1"><span class="slbl">Summary</span><div class="sum-row" id="sum-row"></div></div>
+      <div class="a2"><span class="slbl">Playlists to create — tap name to rename</span><div class="plist" id="plist"></div></div>
+      <div style="height:80px"></div>
+    </div>
+  </div>
+  <div class="act-bar">
+    <button class="btn-sec" onclick="startAnalysis()">↩ Redo</button>
+    <button class="btn-main" id="btn-create">
+      <svg width="17" height="17" viewBox="0 0 17 17" fill="none"><path d="M8.5 2v13M2 8.5h13" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+      <span id="btn-create-lbl">Create playlists</span>
+    </button>
+  </div>
+</div>
+
+<!-- ══ CREATING ══ -->
+<div id="creating" class="view">
+  <div class="hdr">
+    <div class="hdr-brand">
+      <svg width="20" height="20" viewBox="0 0 100 100" fill="none">
+        <circle cx="50" cy="50" r="32" stroke="#4F8EF7" stroke-width="2.5" stroke-dasharray="168 34" stroke-linecap="round" transform="rotate(-90 50 50)"/>
+        <circle cx="50" cy="50" r="4.5" fill="#4F8EF7"/>
+      </svg>
+      <span class="hdr-name">Creating…</span>
+    </div>
+    <div class="hdr-right">
+      <div class="chip"><div class="av" id="av-c">—</div><span class="av-name" id="an-c">—</span></div>
+    </div>
+  </div>
+  <div class="scroll-view">
+    <div class="cr-body" id="cr-body"></div>
+  </div>
+</div>
+
+<!-- ══ DONE ══ -->
+<div id="done" class="view">
+  <div class="hdr">
+    <div class="hdr-brand">
+      <svg width="20" height="20" viewBox="0 0 100 100" fill="none">
+        <circle cx="50" cy="50" r="32" stroke="#4F8EF7" stroke-width="2.5" stroke-dasharray="168 34" stroke-linecap="round" transform="rotate(-90 50 50)"/>
+        <circle cx="50" cy="50" r="4.5" fill="#4F8EF7"/>
+      </svg>
+      <span class="hdr-name">Done</span>
+    </div>
+    <div class="hdr-right">
+      <div class="chip"><div class="av" id="av-d">—</div><span class="av-name" id="an-d">—</span></div>
+      <button class="btn-out" onclick="doLogout()">Sign out</button>
+    </div>
+  </div>
+  <div class="scroll-view">
+    <div class="done-body">
+      <div class="done-hero a1">
+        <div class="done-check">
+          <svg width="26" height="26" viewBox="0 0 26 26" fill="none"><path d="M6 13l5 5 9-9" stroke="#4F8EF7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="done-hed" id="done-hed">Playlists created!</div>
+        <div class="done-sub" id="done-sub"></div>
+      </div>
+      <div class="done-list a2" id="done-list"></div>
+      <button class="btn-again a3" onclick="startAnalysis()">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M14 8A6 6 0 1 1 3.5 4M2 2l1.5 2.5L6 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Analyse again
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ ERROR ══ -->
+<div id="error" class="view">
+  <div class="err-ico">
+    <svg width="26" height="26" viewBox="0 0 26 26" fill="none">
+      <circle cx="13" cy="13" r="11" stroke="rgba(248,113,113,.6)" stroke-width="1.4"/>
+      <path d="M13 8v6M13 16.5v1" stroke="#FCA5A5" stroke-width="1.8" stroke-linecap="round"/>
+    </svg>
+  </div>
+  <div class="err-title" id="err-title">Something went wrong</div>
+  <div class="err-body" id="err-body"></div>
+  <div class="err-btns">
+    <button class="btn-err-p" id="err-reconnect" onclick="forceReconnect()" style="display:none">
+      Sign out &amp; reconnect
+    </button>
+    <a class="btn-err-s" id="err-dash" href="https://developer.spotify.com/dashboard" target="_blank" rel="noopener" style="display:none">
+      Open Spotify Dashboard ↗
+    </a>
+    <button class="btn-err-s" onclick="show('login')">← Back</button>
+  </div>
+  <p class="err-hint" id="err-hint">Added yourself to the Dashboard? Sign out, wait ~15 min, then reconnect.</p>
+  <p class="err-hint" id="err-redirect" style="margin-top:8px;word-break:break-all"></p>
+</div>
+
+</div><!-- /#app -->
+<div id="tc"></div>
+<canvas id="cvs" style="display:none"></canvas>
+
+<script>
+'use strict';
+/* ═══════════════════════════════════════════════
+   SORTIFY v5
+   Key fix: login() errors were silent because:
+   1. crypto.subtle is undefined on HTTP (non-secure)
+   2. async errors from unawaited calls disappear
+   Now all errors surface visibly in the UI.
+   ═══════════════════════════════════════════════ */
+
+const CLIENT_ID = '9b80041f725c4ba0a4b793c074aaab69';
+const REDIRECT  = window.location.origin + window.location.pathname.replace(/index\.html$/,'');
+const SCOPES    = [
+  'user-library-read','user-library-modify',
+  'playlist-read-private','playlist-read-collaborative',
+  'playlist-modify-public','playlist-modify-private',
+  'user-read-private','user-read-email',
+].join(' ');
+const AUTH_URL  = 'https://accounts.spotify.com/authorize';
+const TOKEN_URL = 'https://accounts.spotify.com/api/token';
+const API       = 'https://api.spotify.com/v1';
+
+/* ── storage ── */
+const S={
+  g:(k,d=null)=>{try{const v=localStorage.getItem('s5_'+k);return v!==null?JSON.parse(v):d}catch{return d}},
+  s:(k,v)=>{try{localStorage.setItem('s5_'+k,JSON.stringify(v))}catch{}},
+  d:(k)=>localStorage.removeItem('s5_'+k),
+  clear(){['at','rt','exp','user'].forEach(k=>S.d(k))},
+};
+
+let me = null;
+
+/* ── PKCE ── */
+function makeRandom(n){
+  const a=new Uint8Array(n);
+  crypto.getRandomValues(a);
+  return btoa(String.fromCharCode(...a)).replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');
+}
+async function makeChallenge(v){
+  // FIX: crypto.subtle requires HTTPS. On HTTP it's undefined.
+  // Detect this and show a clear error instead of silent failure.
+  if(!window.crypto?.subtle){
+    throw new Error(
+      'Secure context required.\n\n'
+      +'This app must be opened over HTTPS (not HTTP).\n\n'
+      +'If testing locally, use https://localhost or deploy to Vercel first.'
+    );
+  }
+  const h=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(v));
+  return btoa(String.fromCharCode(...new Uint8Array(h))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');
+}
+
+/* ── The connect button handler — called from onclick so errors surface ── */
+async function handleConnectClick(){
+  const btn=Q('btn-connect');
+  const lbl=Q('btn-connect-label');
+  const err=Q('land-err');
+
+  btn.disabled=true;
+  lbl.textContent='Connecting…';
+  err.classList.remove('on');err.textContent='';
+
+  try{
+    const v=makeRandom(64);
+    const ch=await makeChallenge(v);
+    const st=makeRandom(16);
+    S.s('pv',v);S.s('st',st);
+    const p=new URLSearchParams({
+      client_id:CLIENT_ID,response_type:'code',
+      redirect_uri:REDIRECT,scope:SCOPES,state:st,
+      code_challenge_method:'S256',code_challenge:ch,
+      show_dialog:'false',
+    });
+    // This navigates away — if it doesn't, something is blocking it
+    window.location.href=AUTH_URL+'?'+p;
+  }catch(e){
+    btn.disabled=false;
+    lbl.textContent='Connect with Spotify';
+    err.textContent=e.message;
+    err.classList.add('on');
+    console.error('Login error:',e);
+  }
+}
+
+/* ── OAuth callback ── */
+async function handleCallback(){
+  show('auth');
+  const p=new URLSearchParams(location.search);
+  const code=p.get('code'),err=p.get('error'),rs=p.get('state');
+  history.replaceState({},'',location.pathname);
+  if(err||!code){showErr('Login cancelled',err||'No code returned from Spotify.');return;}
+  const saved=S.g('st');
+  if(saved&&rs!==saved){showErr('Security check failed','State mismatch — please try again.');return;}
+  const v=S.g('pv');S.d('pv');S.d('st');
+  try{
+    const b=new URLSearchParams({grant_type:'authorization_code',code,redirect_uri:REDIRECT,client_id:CLIENT_ID,code_verifier:v});
+    const r=await fetch(TOKEN_URL,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:b});
+    const d=await r.json();
+    if(!r.ok) throw new Error(d.error_description||d.error||`Token exchange failed (${r.status})`);
+    S.s('at',d.access_token);S.s('rt',d.refresh_token);S.s('exp',Date.now()+(d.expires_in-60)*1000);
+    await startAnalysis();
+  }catch(e){
+    showErr('Authentication failed',e.message);
+  }
+}
+
+/* ── Token refresh ── */
+async function refreshToken(){
+  const rt=S.g('rt');if(!rt){doLogout();throw new Error('No refresh token')}
+  const b=new URLSearchParams({grant_type:'refresh_token',refresh_token:rt,client_id:CLIENT_ID});
+  const r=await fetch(TOKEN_URL,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:b});
+  const d=await r.json();
+  if(!r.ok){doLogout();throw new Error('Session expired — please sign in again')}
+  S.s('at',d.access_token);S.s('exp',Date.now()+(d.expires_in-60)*1000);
+  if(d.refresh_token) S.s('rt',d.refresh_token);
+  return d.access_token;
+}
+
+const isAuthed=()=>!!(S.g('at')&&S.g('rt'));
+function doLogout(){S.clear();me=null;show('login');}
+
+// Called from error screen — clears tokens then immediately starts fresh OAuth
+// with show_dialog:'true' so Spotify cannot serve a cached/blocked grant.
+async function forceReconnect(){
+  S.clear(); me=null;
+  const btn=Q('err-reconnect');
+  if(btn){btn.disabled=true;btn.textContent='Redirecting to Spotify…';}
+  try{
+    const v=makeRandom(64);
+    const ch=await makeChallenge(v);
+    const st=makeRandom(16);
+    S.s('pv',v);S.s('st',st);
+    const p=new URLSearchParams({
+      client_id:CLIENT_ID,response_type:'code',
+      redirect_uri:REDIRECT,scope:SCOPES,state:st,
+      code_challenge_method:'S256',code_challenge:ch,
+      show_dialog:'true', // CRITICAL: forces Spotify to show auth screen fresh
+    });
+    window.location.href=AUTH_URL+'?'+p;
+  }catch(e){
+    show('login');
+    // Show error on landing
+    const err=Q('land-err');
+    if(err){err.textContent=e.message;err.classList.add('on');}
+  }
+}
+
+/* ── API ── */
+async function api(url,opts={}){
+  if(Date.now()>S.g('exp',0)) await refreshToken();
+  const tok=S.g('at');
+  const hdrs={'Authorization':`Bearer ${tok}`,...(opts.body?{'Content-Type':'application/json'}:{})};
+  let r=await fetch(url,{...opts,headers:hdrs});
+  if(r.status===401){const nt=await refreshToken();r=await fetch(url,{...opts,headers:{...hdrs,'Authorization':`Bearer ${nt}`}});}
+  if(r.status===429){const w=(parseInt(r.headers.get('Retry-After')||'2',10)+1)*1000;await sleep(w);return api(url,opts);}
+  if(r.status===403){
+    let b={};try{b=await r.clone().json()}catch{}
+    const msg=(b?.error?.message||'').toLowerCase();
+    const is403Allowlist=msg.includes('not registered')||msg.includes('not approved')||!msg||msg==='forbidden';
+    const e=new Error(b?.error?.message||'Spotify refused the request (403)');
+    e.code=is403Allowlist?'403_ALLOWLIST':(msg.includes('scope')?'403_SCOPE':'403');
+    throw e;
+  }
+  if(!r.ok){let b={};try{b=await r.json()}catch{};throw new Error(b?.error?.message||`API error ${r.status}`);}
+  if(r.status===204) return null;
+  return r.json();
+}
+
+/* ── Classification rules ── */
+const GENRE_RULES=[
+  {key:'hiphop',    label:'Hip-Hop',          emoji:'🎤',tags:['hip hop','hip-hop','rap','trap','drill','grime','boom bap','lo-fi hip hop']},
+  {key:'rnb',       label:'R&B & Soul',        emoji:'🎵',tags:['r&b','rnb','soul','neo soul','funk','motown','gospel']},
+  {key:'electronic',label:'Electronic',        emoji:'⚡',tags:['electronic','edm','techno','house','trance','dubstep','drum and bass','electro','ambient','synthwave','dance','disco']},
+  {key:'latin',     label:'Latin',             emoji:'💃',tags:['latin','reggaeton','salsa','cumbia','bossa nova','bachata','merengue']},
+  {key:'jazz',      label:'Jazz & Blues',      emoji:'🎷',tags:['jazz','blues','swing','bebop','jazz fusion','smooth jazz']},
+  {key:'classical', label:'Classical',         emoji:'🎼',tags:['classical','orchestra','chamber','opera','piano','baroque','romantic']},
+  {key:'metal',     label:'Rock & Metal',      emoji:'🎸',tags:['metal','heavy metal','hardcore','punk','rock','alternative','grunge','indie rock','emo']},
+  {key:'country',   label:'Country & Folk',    emoji:'🤠',tags:['country','folk','bluegrass','americana','indie folk']},
+  {key:'reggae',    label:'Reggae',            emoji:'🌴',tags:['reggae','dancehall','ska','dub']},
+  {key:'kpop',      label:'K-Pop & J-Pop',     emoji:'🌟',tags:['k-pop','korean','j-pop','city pop','anime']},
+  {key:'afrobeats', label:'Afrobeats',         emoji:'🌍',tags:['afrobeats','afropop','afro','highlife','amapiano']},
+];
+const FEAT_RULES=[
+  {key:'instrumental',label:'Focus / Instrumental',emoji:'🎹',test:f=>f.instrumentalness>0.65},
+  {key:'acoustic',    label:'Acoustic',             emoji:'🪵',test:f=>f.acousticness>0.72},
+  {key:'hype',        label:'Hype / Workout',        emoji:'🔥',test:f=>f.energy>0.8&&f.tempo>118},
+  {key:'dance',       label:'Dance Floor',           emoji:'🕺',test:f=>f.danceability>0.75&&f.energy>0.55},
+  {key:'feelgood',    label:'Feel Good',             emoji:'☀️',test:f=>f.valence>0.72&&f.energy>0.5},
+  {key:'chill',       label:'Chill',                 emoji:'😌',test:f=>f.energy<0.42&&f.valence>0.4},
+  {key:'dark',        label:'Dark & Moody',          emoji:'🌙',test:f=>f.valence<0.33&&f.energy<0.62},
+];
+const FALLBACK={key:'misc',label:'Everything Else',emoji:'🎵'};
+const MIN_SIZE=3;
+
+function classify(track,features,artistGenres){
+  const genres=new Set();
+  (track.artists||[]).forEach(a=>(artistGenres[a.id]||[]).forEach(g=>genres.add(g.toLowerCase())));
+  for(const rule of GENRE_RULES)
+    for(const tag of rule.tags)
+      if([...genres].some(g=>g.includes(tag))) return rule.key;
+  if(features)
+    for(const rule of FEAT_RULES)
+      if(rule.test(features)) return rule.key;
+  return FALLBACK.key;
+}
+
+function getBucket(key){
+  return GENRE_RULES.find(r=>r.key===key)||FEAT_RULES.find(r=>r.key===key)||FALLBACK;
+}
+
+/* ── Analysis ── */
+let _preview=null;
+
+async function startAnalysis(){
+  if(!isAuthed()){show('login');return;}
+  show('analyze');
+  setP(0,'Starting…');
+
+  try{
+    me=me||S.g('user')||await api(`${API}/me`);
+    S.s('user',me);syncAvatars();
+  }catch(e){
+    handle403(e);return;
+  }
+
+  try{
+    // Phase 0 — liked songs
+    pa(0);
+    const songs=[];
+    let url=`${API}/me/tracks?limit=50`;
+    while(url){
+      const d=await api(url);if(!d?.items?.length) break;
+      d.items.forEach(i=>{if(i?.track?.id) songs.push(i.track);});
+      url=d.next;
+      Q('ph0n').textContent=songs.length;
+      setP(Math.min(22,(songs.length/300)*22),`Loaded ${songs.length} songs…`);
+    }
+    pd(0,songs.length);
+    setP(24,'Fetching audio features…');
+    Q('an-hed').textContent='Analysing tracks';
+    Q('an-sub').textContent=`${songs.length} songs — this takes ~${Math.ceil(songs.length/10)}s for a library this size`;
+
+    // Phase 1 — audio features (try batch, gracefully skip if 403/removed Feb 2026)
+    pa(1);
+    const ids=songs.map(t=>t.id);
+    const features={};
+    let audioFeaturesAvailable=true;
+    try{
+      for(const batch of ch(ids,100)){
+        const d=await api(`${API}/audio-features?ids=${batch.join(',')}`);
+        if(d?.audio_features) d.audio_features.forEach((f,i)=>{if(f) features[batch[i]]=f;});
+        Q('ph1n').textContent=Object.keys(features).length;
+        await sleep(80);
+      }
+    }catch(e){
+      // Feb 2026: endpoint may be removed in dev mode — continue without audio features
+      audioFeaturesAvailable=false;
+      console.warn('Audio features unavailable, classifying by genre only:',e.message);
+    }
+    const featCount=Object.keys(features).length;
+    pd(1, audioFeaturesAvailable ? featCount : 'N/A');
+    setP(52,'Fetching artist genres…');
+
+    // Phase 2 — artist genres
+    // FIX Feb 2026: GET /artists?ids=... (batch) REMOVED → must fetch one-by-one
+    pa(2);
+    const artistIds=[...new Set(songs.flatMap(t=>(t.artists||[]).map(a=>a.id)))];
+    const artistGenres={};
+    let loaded=0;
+    Q('an-sub').textContent=`Fetching genres for ${artistIds.length} artists…`;
+    for(const artistId of artistIds){
+      try{
+        const a=await api(`${API}/artists/${artistId}`);
+        if(a) artistGenres[a.id]=a.genres||[];
+      }catch(e){
+        // single artist 403 or 404 — skip, artist stays genreless
+        artistGenres[artistId]=[];
+      }
+      loaded++;
+      Q('ph2n').textContent=loaded;
+      setP(52+(loaded/artistIds.length)*20,`Genres: ${loaded}/${artistIds.length} artists`);
+      // Throttle to avoid rate-limiting (Spotify allows ~30 req/s but be conservative)
+      await sleep(60);
+    }
+    pd(2,loaded);
+    Q('an-sub').textContent='Classifying tracks…';
+    setP(74,'Classifying…');
+
+    // Phase 3 — classify
+    const noteEl=Q('an-note');if(noteEl) noteEl.style.display='none';
+    pa(3);
+    const buckets=new Map();
+    songs.forEach((t,i)=>{
+      const key=classify(t,features[t.id],artistGenres);
+      if(!buckets.has(key)) buckets.set(key,{bucket:getBucket(key),tracks:[]});
+      buckets.get(key).tracks.push(t);
+      if(i%100===0){Q('ph3n').textContent=i;setP(74+(i/songs.length)*24,'Classifying…');}
+    });
+    pd(3,songs.length);
+    setP(100,'Done!');
+
+    _preview={buckets,total:songs.length};
+    await sleep(500);
+    showPreview();
+
+  }catch(e){
+    handle403(e);
+  }
+}
+
+/* ── Preview ── */
+function showPreview(){
+  if(!_preview) return;
+  const {buckets,total}=_preview;
+  const sorted=[...buckets.values()]
+    .filter(b=>b.tracks.length>=MIN_SIZE)
+    .sort((a,b)=>b.tracks.length-a.tracks.length);
+  const sorted_n=sorted.reduce((a,b)=>a+b.tracks.length,0);
+  window._pd=sorted;
+
+  Q('sum-row').innerHTML=`
+    <div class="sum-cell"><div class="sum-n">${total}</div><div class="sum-lbl">Liked Songs</div></div>
+    <div class="sum-cell"><div class="sum-n">${sorted.length}</div><div class="sum-lbl">Playlists</div></div>
+    <div class="sum-cell"><div class="sum-n">${sorted_n}</div><div class="sum-lbl">Sorted</div></div>`;
+
+  Q('plist').innerHTML=sorted.map((b,i)=>{
+    const samples=b.tracks.slice(0,3).map(t=>
+      `<div class="pcard-track"><span class="pcard-track-name">${esc(t.name)}</span> <span style="color:var(--t3)">· ${esc(t.artists?.[0]?.name||'')}</span></div>`
+    ).join('');
+    return `<div class="pcard" id="pc${i}">
+      <div class="pcard-head">
+        <div class="pcard-emoji">${b.bucket.emoji}</div>
+        <div class="pcard-info">
+          <input class="pcard-input" id="pn${i}" value="${esc(b.bucket.label)}" maxlength="60"/>
+          <div class="pcard-count">${b.tracks.length} song${b.tracks.length!==1?'s':''}</div>
+        </div>
+        <label class="pcard-tog">
+          <input type="checkbox" id="pt${i}" checked onchange="toggleCard(${i},this.checked)"/>
+          <div class="tog-tr"></div>
+        </label>
+      </div>
+      <div class="pcard-tracks">${samples}</div>
+    </div>`;
+  }).join('');
+
+  show('preview');
+  updateCreateBtn();
+}
+
+function toggleCard(i,on){Q(`pc${i}`)?.classList.toggle('off',!on);updateCreateBtn();}
+function updateCreateBtn(){
+  const d=window._pd||[];
+  const n=d.filter((_,i)=>Q(`pt${i}`)?.checked!==false).length;
+  Q('btn-create').disabled=n===0;
+  Q('btn-create-lbl').textContent=n>0?`Create ${n} playlist${n!==1?'s':''}`:'Select at least one';
+}
+
+/* ── Create playlists ── */
+Q('btn-create').addEventListener('click',async()=>{
+  const btn=Q('btn-create');
+  btn.disabled=true;btn.classList.add('going');
+  btn.innerHTML=`<svg class="spin-ico" width="17" height="17" viewBox="0 0 17 17" fill="none"><path d="M15 8.5A6.5 6.5 0 1 1 3.5 4.5M2 2l1.5 3 3-1.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Creating…</span>`;
+
+  const d=window._pd||[];
+  const toCreate=d.filter((_,i)=>Q(`pt${i}`)?.checked!==false).map((b,globalIdx)=>{
+    const idx=d.indexOf(b);
+    return{...b,name:(Q(`pn${idx}`)?.value||'').trim()||b.bucket.label};
+  });
+
+  Q('cr-body').innerHTML=toCreate.map((b,i)=>`
+    <div class="cr-step" id="cs${i}">
+      <div class="cr-emoji">${b.bucket.emoji}</div>
+      <span class="cr-label">${esc(b.name)}</span>
+      <div class="cr-spinner" id="css${i}" style="display:none"></div>
+      <span class="cr-status" id="cst${i}" style="color:var(--t3)">Waiting…</span>
+    </div>`).join('');
+
+  show('creating');syncAvatars();
+
+  const results=[];let errs=0;
+  for(let i=0;i<toCreate.length;i++){
+    const b=toCreate[i];
+    Q(`css${i}`).style.display='block';
+    Q(`cst${i}`).textContent='Creating…';
+    try{
+      // FIX Feb 2026: POST /users/{id}/playlists REMOVED → POST /me/playlists
+      const pl=await api(`${API}/me/playlists`,{
+        method:'POST',
+        body:JSON.stringify({name:b.name,description:`Auto-sorted by Sortify · ${b.tracks.length} songs · ${new Date().toLocaleDateString()}`,public:false}),
+      });
+      Q(`cst${i}`).textContent='Adding songs…';
+      const uris=b.tracks.map(t=>`spotify:track:${t.id}`);
+      for(const batch of ch(uris,100)){
+        // FIX Feb 2026: /tracks deprecated → /items
+        await api(`${API}/playlists/${pl.id}/items`,{method:'POST',body:JSON.stringify({uris:batch})});
+        await sleep(60);
+      }
+      Q(`cs${i}`).classList.add('ok');
+      Q(`css${i}`).style.display='none';
+      Q(`cst${i}`).textContent=`✓ ${b.tracks.length} songs`;
+      results.push({name:b.name,count:b.tracks.length,emoji:b.bucket.emoji});
+    }catch(e){
+      Q(`cs${i}`).classList.add('err');
+      Q(`css${i}`).style.display='none';
+      Q(`cst${i}`).textContent='Failed';
+      console.error(e);errs++;
+    }
+    await sleep(150);
+  }
+  await sleep(700);
+
+  const tot=results.reduce((a,r)=>a+r.count,0);
+  Q('done-hed').textContent=errs>0?`${results.length} created, ${errs} failed`:'Playlists created!';
+  Q('done-sub').textContent=`${tot} songs sorted into ${results.length} new playlist${results.length!==1?'s':''} in your Spotify library.`;
+  Q('done-list').innerHTML=results.map(r=>`
+    <div class="done-row">
+      <div class="done-emoji">${r.emoji}</div>
+      <span class="done-name">${esc(r.name)}</span>
+      <span class="done-cnt">${r.count} songs</span>
+    </div>`).join('');
+  syncAvatars();show('done');
+});
+
+/* ── Error handling ── */
+function handle403(e){
+  // Never auto-redirect — always show error screen and let user decide
+  show('error');
+  const is403=(e.code||'').startsWith('403')||(e.message||'').includes('403');
+  if(is403){
+    Q('err-title').textContent='403 — Spotify refused the request';
+    Q('err-body').textContent=
+      'Your current Spotify session was created before your account was added to the app\'s allowlist.\n\n'
+      +'Fix: sign out below, then tap "Connect with Spotify" again to get a fresh token.\n\n'
+      +'If you just added yourself to the Dashboard, wait up to 15 minutes first.';
+    Q('err-reconnect').style.display='flex';
+    Q('err-dash').style.display='block';
+    // Show exact redirect URI so user can verify it matches their Spotify Dashboard
+    const rdEl=Q('err-redirect');
+    if(rdEl) rdEl.textContent='Redirect URI registered in your app: '+REDIRECT;
+  }else{
+    Q('err-title').textContent='Something went wrong';
+    Q('err-body').textContent=e.message||'Unknown error. Please try again.';
+    Q('err-reconnect').style.display='none';
+    Q('err-dash').style.display='none';
+  }
+}
+
+function showErr(title,body){
+  Q('err-title').textContent=title;
+  Q('err-body').textContent=body;
+  Q('err-reconnect').style.display='none';
+  Q('err-dash').style.display='none';
+  show('error');
+}
+
+/* ── UI helpers ── */
+function show(id){document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));Q(id).classList.add('active');}
+function Q(id){return document.getElementById(id)}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+function sleep(ms){return new Promise(r=>setTimeout(r,ms))}
+function ch(a,n){const r=[];for(let i=0;i<a.length;i+=n)r.push(a.slice(i,i+n));return r}
+
+function setP(pct,txt){Q('pfill').style.width=pct+'%';Q('ptxt').textContent=txt;Q('ppct').textContent=Math.round(pct)+'%';}
+function pa(n){const el=Q('ph'+n);el.classList.add('act');el.classList.remove('done')}
+function pd(n,count){const el=Q('ph'+n);el.classList.remove('act');el.classList.add('done');Q('ph'+n+'n').textContent=count;}
+
+function syncAvatars(){
+  if(!me) return;
+  ['a','p','c','d'].forEach(s=>{
+    const av=Q('av-'+s),an=Q('an-'+s);
+    if(!av||!an) return;
+    if(me.images?.[0]?.url) av.innerHTML=`<img src="${me.images[0].url}" alt="">`;
+    else av.textContent=(me.display_name||me.id||'U')[0].toUpperCase();
+    an.textContent=me.display_name||me.id||'';
+  });
+}
+
+function toast(msg,type='ok'){
+  const c=Q('tc'),el=document.createElement('div');
+  el.className=`toast ${type}`;el.textContent=msg;c.appendChild(el);
+  setTimeout(()=>{el.classList.add('out');setTimeout(()=>el.remove(),300)},3500);
+}
+
+/* ── Icon ── */
+function paintIcon(ctx,sz){
+  const cx=sz/2,cy=sz/2;
+  const bg=ctx.createLinearGradient(0,0,sz,sz);bg.addColorStop(0,'#030d22');bg.addColorStop(1,'#03091A');
+  ctx.fillStyle=bg;const r=sz*.22;
+  ctx.beginPath();ctx.moveTo(r,0);ctx.lineTo(sz-r,0);ctx.quadraticCurveTo(sz,0,sz,r);
+  ctx.lineTo(sz,sz-r);ctx.quadraticCurveTo(sz,sz,sz-r,sz);ctx.lineTo(r,sz);ctx.quadraticCurveTo(0,sz,0,sz-r);
+  ctx.lineTo(0,r);ctx.quadraticCurveTo(0,0,r,0);ctx.closePath();ctx.fill();
+  const gl=ctx.createRadialGradient(cx,cy*.7,0,cx,cy*.7,sz*.55);gl.addColorStop(0,'rgba(79,142,247,.25)');gl.addColorStop(1,'transparent');
+  ctx.fillStyle=gl;ctx.fillRect(0,0,sz,sz);
+  ctx.save();ctx.strokeStyle='#4F8EF7';ctx.lineWidth=sz*.028;ctx.lineCap='round';
+  const rr=sz*.32,cc=2*Math.PI*rr;ctx.setLineDash([cc*(168/202),cc*(34/202)]);
+  ctx.translate(cx,cy);ctx.rotate(-Math.PI/2);ctx.beginPath();ctx.arc(0,0,rr,0,Math.PI*2);ctx.stroke();ctx.restore();
+  ctx.save();ctx.strokeStyle='rgba(126,179,255,.3)';ctx.lineWidth=sz*.016;ctx.lineCap='round';
+  const ir=sz*.20,ic=2*Math.PI*ir;ctx.setLineDash([ic*(105/126),ic*(21/126)]);
+  ctx.translate(cx,cy);ctx.rotate(Math.PI/2);ctx.beginPath();ctx.arc(0,0,ir,0,Math.PI*2);ctx.stroke();ctx.restore();
+  const h=ctx.createRadialGradient(cx,cy,0,cx,cy,sz*.12);h.addColorStop(0,'rgba(79,142,247,.3)');h.addColorStop(1,'transparent');
+  ctx.fillStyle=h;ctx.beginPath();ctx.arc(cx,cy,sz*.12,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#4F8EF7';ctx.beginPath();ctx.arc(cx,cy,sz*.055,0,Math.PI*2);ctx.fill();
+}
+function injectIcon(){
+  try{
+    const c=Q('cvs');c.width=c.height=180;const ctx=c.getContext('2d');
+    ctx.clearRect(0,0,180,180);paintIcon(ctx,180);
+    let l=document.querySelector('link[rel="apple-touch-icon"]');
+    if(!l){l=document.createElement('link');l.rel='apple-touch-icon';document.head.appendChild(l);}
+    l.href=c.toDataURL('image/png');
+  }catch(e){console.warn('Icon generation failed:',e);}
+}
+
+/* ── SW ── */
+if('serviceWorker' in navigator)
+  window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
+
+/* ── Boot ── */
+(async()=>{
+  injectIcon();
+  const p=new URLSearchParams(location.search);
+  if(p.has('code')||p.has('error')){
+    await handleCallback();
+  }else if(isAuthed()){
+    me=S.g('user');
+    await startAnalysis();
+  }else{
+    show('login');
+  }
+})();
+</script>
+</body>
+</html>
