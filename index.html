@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Lacuna Sync</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --lacuna-blue: #3B82F6;
+            --bg: #000508;
+            --glass: rgba(59, 130, 246, 0.05);
+            --border: rgba(255, 255, 255, 0.08);
+        }
+        * { box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+        body {
+            background-color: var(--bg);
+            color: #FFFFFF;
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+        .orb {
+            position: absolute;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(59, 130, 246, 0.12), transparent 70%);
+            filter: blur(60px);
+            z-index: -1;
+            top: -10%;
+            right: -10%;
+        }
+        .container { width: 90%; max-width: 380px; text-align: center; }
+        .glass-card {
+            background: var(--glass);
+            border: 1px solid var(--border);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            border-radius: 24px;
+            padding: 48px 24px;
+        }
+        .tagline {
+            font-size: 10px;
+            font-weight: 500;
+            color: var(--lacuna-blue);
+            text-transform: uppercase;
+            letter-spacing: 0.3em;
+            margin-bottom: 12px;
+            display: block;
+        }
+        h1 { font-weight: 200; font-size: 36px; margin: 0 0 10px 0; letter-spacing: -0.04em; }
+        p { font-size: 14px; font-weight: 300; color: #888; line-height: 1.6; margin-bottom: 30px; }
+        button {
+            background: var(--lacuna-blue);
+            color: white;
+            border: none;
+            padding: 18px;
+            border-radius: 12px;
+            font-weight: 500;
+            width: 100%;
+            font-size: 15px;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        button:active { opacity: 0.8; }
+        #log { font-size: 11px; font-family: monospace; color: var(--lacuna-blue); margin-top: 20px; min-height: 1.2em; }
+    </style>
+</head>
+<body>
+    <div class="orb"></div>
+    <div class="container">
+        <div class="glass-card">
+            <span class="tagline">Gap Engine v1.0</span>
+            <h1>Lacuna Sync</h1>
+            <p id="status">Analyze your music library and autonomously fill gaps in your existing playlists.</p>
+            <button id="cta">Link Spotify</button>
+            <div id="log"></div>
+        </div>
+    </div>
+    <script src="app.js"></script>
+</body>
+</html>
