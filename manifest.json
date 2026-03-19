@@ -1,0 +1,15 @@
+{
+  "name": "Lacuna Sync",
+  "short_name": "Lacuna",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#000508",
+  "theme_color": "#3B82F6",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/3669/3669483.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
