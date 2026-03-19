@@ -10,26 +10,66 @@
 <title>Sortify</title>
 <script>
 (function(){
-  try{
-    var c=document.createElement('canvas');c.width=c.height=512;
+  try {
+    var c=document.createElement('canvas'); c.width=c.height=512;
     var x=c.getContext('2d');
-    x.fillStyle='#0d0d0d';
-    x.beginPath();x.moveTo(90,0);x.arcTo(512,0,512,512,90);
-    x.arcTo(512,512,0,512,90);x.arcTo(0,512,0,0,90);
-    x.arcTo(0,0,512,0,90);x.closePath();x.fill();
-    var g=x.createRadialGradient(180,190,0,180,190,230);
-    g.addColorStop(0,'rgba(29,185,84,0.55)');g.addColorStop(1,'transparent');
-    x.fillStyle=g;x.fillRect(0,0,512,512);
-    var g2=x.createRadialGradient(330,310,0,330,310,180);
-    g2.addColorStop(0,'rgba(29,185,84,0.25)');g2.addColorStop(1,'transparent');
-    x.fillStyle=g2;x.fillRect(0,0,512,512);
-    x.font='700 255px -apple-system,Arial';x.textAlign='center';x.textBaseline='middle';
-    x.fillStyle='#1DB954';x.fillText('S',256,270);
-    var u=c.toDataURL('image/png');
-    ['apple-touch-icon','icon'].forEach(function(r){
-      var l=document.createElement('link');l.rel=r;l.href=u;document.head.appendChild(l);
+
+    // Clip to rounded rect
+    x.beginPath();
+    x.moveTo(96,0); x.arcTo(512,0,512,512,96); x.arcTo(512,512,0,512,96);
+    x.arcTo(0,512,0,0,96); x.arcTo(0,0,512,0,96); x.closePath();
+    x.clip();
+
+    // Dark green background gradient
+    var bg=x.createLinearGradient(0,0,512,512);
+    bg.addColorStop(0,'#0d1f14'); bg.addColorStop(1,'#060d09');
+    x.fillStyle=bg; x.fillRect(0,0,512,512);
+
+    // Glow top-left
+    var g1=x.createRadialGradient(110,120,0,110,120,240);
+    g1.addColorStop(0,'rgba(29,185,84,0.5)'); g1.addColorStop(1,'transparent');
+    x.fillStyle=g1; x.fillRect(0,0,512,512);
+
+    // Glow bottom-right
+    var g2=x.createRadialGradient(400,400,0,400,400,200);
+    g2.addColorStop(0,'rgba(29,185,84,0.2)'); g2.addColorStop(1,'transparent');
+    x.fillStyle=g2; x.fillRect(0,0,512,512);
+
+    // Subtle grid
+    x.strokeStyle='rgba(29,185,84,0.06)'; x.lineWidth=1;
+    for(var i=0;i<512;i+=40){
+      x.beginPath();x.moveTo(i,0);x.lineTo(i,512);x.stroke();
+      x.beginPath();x.moveTo(0,i);x.lineTo(512,i);x.stroke();
+    }
+
+    // Equaliser bars
+    var bars=[0.3,0.65,1.0,0.7,0.5,0.88,0.42,0.72,0.95,0.58,0.38,0.8];
+    var bw=18,gap=10,total=bars.length*(bw+gap)-gap;
+    var sx=(512-total)/2,cy=318;
+    bars.forEach(function(h,i){
+      var ht=h*130,bx=sx+i*(bw+gap),by=cy-ht/2;
+      var grad=x.createLinearGradient(0,by,0,by+ht);
+      grad.addColorStop(0,'rgba(29,185,84,0.95)');
+      grad.addColorStop(1,'rgba(29,185,84,0.25)');
+      x.fillStyle=grad;
+      x.beginPath(); x.roundRect(bx,by,bw,ht,5); x.fill();
     });
-  }catch(e){}
+
+    // White S with green glow
+    x.shadowColor='rgba(29,185,84,0.7)'; x.shadowBlur=50;
+    x.font='bold 200px Arial'; x.textAlign='center'; x.textBaseline='middle';
+    x.fillStyle='#ffffff'; x.fillText('S',256,168);
+    x.shadowBlur=0;
+
+    // Subtle wordmark
+    x.font='300 38px Arial'; x.fillStyle='rgba(255,255,255,0.3)';
+    x.fillText('SORTIFY',256,445);
+
+    var d=c.toDataURL('image/png');
+    ['apple-touch-icon','icon'].forEach(function(r){
+      var l=document.createElement('link'); l.rel=r; l.href=d; document.head.appendChild(l);
+    });
+  } catch(e) {}
 })();
 </script>
 <style>
