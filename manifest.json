@@ -1,0 +1,16 @@
+{
+  "name": "Sortify",
+  "short_name": "Sortify",
+  "description": "AI-powered Spotify playlist organiser.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#05000F",
+  "theme_color": "#05000F",
+  "lang": "en",
+  "icons": [
+    {"src":"icons/icon-192.png","sizes":"192x192","type":"image/png","purpose":"any maskable"},
+    {"src":"icons/icon-512.png","sizes":"512x512","type":"image/png","purpose":"any maskable"}
+  ]
+}
