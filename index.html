@@ -1,0 +1,1436 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover"/>
+<title>Sortify</title>
+<link rel="manifest" href="manifest.json"/>
+<meta name="theme-color" content="#0e0e0e"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="Sortify"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,700;1,800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config={darkMode:'class',theme:{extend:{
+  colors:{
+    'surf':'#0e0e0e','surf-lo':'#131313','surf-hi':'#201f1f','surf-top':'#262626',
+    'prim':'#79e3ff','prim-dim':'#00caed','sec':'#ff6c90','tert':'#8eff71',
+    'on-s':'#ffffff','on-sv':'#adaaaa','out-v':'#494847'
+  },
+  fontFamily:{head:['Plus Jakarta Sans','sans-serif'],body:['Inter','sans-serif']},
+  borderRadius:{DEFAULT:'1rem','lg':'2rem','xl':'3rem','full':'9999px'}
+}}}
+</script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:#0e0e0e;-webkit-text-size-adjust:100%}
+body{font-family:'Inter',sans-serif;color:#fff;-webkit-font-smoothing:antialiased;overscroll-behavior:none;-webkit-tap-highlight-color:transparent}
+button,input{font-family:inherit;color:inherit}
+img{display:block}a{color:inherit;text-decoration:none}
+::-webkit-scrollbar{display:none}
+
+/* ── App root ── */
+#app{position:fixed;top:0;left:50%;bottom:0;transform:translateX(-50%);
+  width:100%;max-width:430px;overflow:hidden;background:#0e0e0e}
+
+/* ── View system ── */
+.view{position:absolute;inset:0;display:none;flex-direction:column;background:#0e0e0e;overflow:hidden;
+  opacity:0;transition:opacity 0.3s ease-in-out}
+.view.active{display:flex;animation:view-fade-in 0.4s ease-out forwards}
+@keyframes view-fade-in{
+  from{opacity:0;transform:translateY(10px)}
+  to{opacity:1;transform:translateY(0)}}
+.sb{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch}
+
+/* ── Safe area helpers ── */
+.pt-sa{padding-top:max(env(safe-area-inset-top,0px),0px)}
+.pb-sa{padding-bottom:env(safe-area-inset-bottom,0px)}
+
+/* ── Aura blobs ── */
+.aura-c{background:radial-gradient(circle,rgba(121,227,255,.15) 0%,transparent 70%)}
+.aura-m{background:radial-gradient(circle,rgba(255,108,144,.12) 0%,transparent 70%)}
+.aura-t{background:radial-gradient(circle,rgba(142,255,113,.1) 0%,transparent 70%)}
+
+/* ── Glass ── */
+.glass{background:rgba(255,255,255,.03);backdrop-filter:blur(16px);
+  -webkit-backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.08)}
+.glass-dark{background:rgba(0,0,0,.65);backdrop-filter:blur(40px);
+  -webkit-backdrop-filter:blur(40px);border:1px solid rgba(255,255,255,.1)}
+
+/* ── Carousel ── */
+.carousel{overflow-x:auto;scroll-snap-type:x mandatory;
+  -webkit-overflow-scrolling:touch;scrollbar-width:none;
+  scroll-behavior:smooth}
+.carousel::-webkit-scrollbar{display:none}
+.c-card{scroll-snap-align:center;flex:0 0 82%;aspect-ratio:3/4;max-height:400px;
+  transition:transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)}
+
+/* ── Material icons ── */
+.mi{font-family:'Material Symbols Outlined';font-weight:normal;font-style:normal;
+  font-size:24px;line-height:1;letter-spacing:normal;text-transform:none;
+  display:inline-block;white-space:nowrap;word-wrap:normal;direction:ltr;
+  -webkit-font-smoothing:antialiased;
+  font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24}
+.mi-f{font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24}
+
+/* ── Progress ring ── */
+.ring-circle{transition:stroke-dashoffset .5s ease;transform:rotate(-90deg);transform-origin:50% 50%}
+#ring-pct{transition:transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)}
+
+/* ── Glows ── */
+.glow-c{filter:drop-shadow(0 0 20px rgba(121,227,255,.4))}
+.glow-m{filter:drop-shadow(0 0 20px rgba(255,108,144,.4))}
+.glow-o{filter:drop-shadow(0 0 20px rgba(255,165,0,.4))}
+.glow-y{filter:drop-shadow(0 0 20px rgba(255,255,0,.4))}
+.glow-p{filter:drop-shadow(0 0 20px rgba(168,85,247,.4))}
+
+/* ── Bottom nav ── */
+.bnav{flex-shrink:0;background:rgba(14,14,14,.97);backdrop-filter:blur(20px);
+  -webkit-backdrop-filter:blur(20px);border-top:1px solid rgba(255,255,255,.05)}
+
+/* ── Playlist name input ── */
+.pn-inp{background:transparent;border:none;outline:none;
+  font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;color:#fff;width:100%;
+  border-bottom:1.5px solid transparent;transition:border-color .2s;padding:0}
+.pn-inp:focus{border-bottom-color:rgba(121,227,255,.5)}
+
+/* ── Toggle ── */
+.tog-tr{position:absolute;inset:0;background:rgba(255,255,255,.07);
+  border:1px solid rgba(255,255,255,.12);border-radius:50px;cursor:pointer;transition:all .2s}
+.tog-tr::after{content:'';position:absolute;top:3px;left:3px;
+  width:18px;height:18px;background:rgba(255,255,255,.22);border-radius:50%;
+  transition:all .2s cubic-bezier(.4,0,.2,1)}
+.tog-in:checked+.tog-tr{background:rgba(121,227,255,.22);border-color:rgba(121,227,255,.5)}
+.tog-in:checked+.tog-tr::after{transform:translateX(18px);background:#79e3ff}
+
+/* ── Playlist cards ── */
+.pcard{overflow:hidden;background:rgba(255,255,255,.05);
+  backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  border:1px solid rgba(255,255,255,.08);border-radius:20px;transition:opacity .16s}
+.pcard.off{opacity:.25;border-style:dashed}
+
+/* ── Mode card selection ── */
+.sm-card{position:relative;transition:all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  opacity:0.6;transform:scale(0.95)}
+.sm-card.selected{transform:scale(1.08);opacity:1}
+.sm-card.selected::before{content:'';position:absolute;inset:-8px;
+  background:linear-gradient(135deg, #79e3ff, #ff6c90, #8eff71, #fde047, #79e3ff);
+  background-size:400% 400%;
+  border-radius:3.2rem;opacity:0.7;
+  pointer-events:none;z-index:-1;
+  filter:blur(20px);
+  animation:rgb-glow 4s ease-in-out infinite}
+.sm-card.selected::after{content:'';position:absolute;inset:-4px;
+  background:linear-gradient(135deg, #79e3ff, #ff6c90, #8eff71, #fde047, #79e3ff);
+  background-size:400% 400%;
+  border-radius:3.1rem;opacity:0.5;
+  pointer-events:none;z-index:-1;
+  filter:blur(8px);
+  animation:rgb-glow 4s ease-in-out infinite reverse}
+@keyframes rgb-glow{
+  0%{background-position:0% 50%}
+  50%{background-position:100% 50%}
+  100%{background-position:0% 50%}}
+
+/* ── Steps (analyze) ── */
+.step{display:flex;align-items:center;gap:16px;padding:14px 16px;
+  border-radius:16px;background:#131313;
+  transition:all 0.3s cubic-bezier(0.4, 0, 0.2, 1)}
+.step.act{background:#131313;border:1px solid rgba(121,227,255,.25);
+  transform:translateX(4px)}
+.step.done{opacity:.7;transform:translateX(-2px)}
+.step-icon{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;
+  justify-content:center;background:#262626;flex-shrink:0;
+  transition:all 0.3s cubic-bezier(0.4, 0, 0.2, 1)}
+
+/* ── Animations ── */
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes fa{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(42px,-32px) scale(1.08)}}
+@keyframes fb{0%,100%{transform:translate(0,0)}45%{transform:translate(-28px,18px) scale(1.06)}}
+@keyframes fu{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes bounce-in{0%{transform:scale(.8);opacity:0}70%{transform:scale(1.15)}100%{transform:scale(1);opacity:1}}
+@keyframes blob{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(30px,-20px) scale(1.1)}66%{transform:translate(-20px,30px) scale(0.95)}}
+@keyframes float-particle{0%,100%{transform:translateY(0) translateX(0) scale(1);opacity:0.3}25%{transform:translateY(-100px) translateX(20px) scale(1.2);opacity:0.6}50%{transform:translateY(-200px) translateX(-10px) scale(0.8);opacity:0.4}75%{transform:translateY(-100px) translateX(30px) scale(1.1);opacity:0.5}}
+@keyframes pulse-ring{0%,100%{transform:scale(1);filter:drop-shadow(0 0 20px rgba(121,227,255,.5))}50%{transform:scale(1.02);filter:drop-shadow(0 0 40px rgba(255,108,144,.7))}}
+.spin{animation:spin .8s linear infinite}
+.a1{animation:fu .3s .06s both}.a2{animation:fu .3s .13s both}.a3{animation:fu .3s .2s both}
+.bounce-in{animation:bounce-in .5s cubic-bezier(.34,1.56,.64,1) both}
+.animate-blob{animation:blob 12s ease-in-out infinite}
+.animation-delay-2000{animation-delay:2s}
+.particle{position:absolute;width:4px;height:4px;border-radius:50%;
+  background:radial-gradient(circle, rgba(121,227,255,0.8), transparent);
+  pointer-events:none}
+.particle-1{left:20%;top:20%;animation:float-particle 15s ease-in-out infinite}
+.particle-2{left:60%;top:40%;animation:float-particle 18s ease-in-out infinite 2s}
+.particle-3{left:80%;top:30%;animation:float-particle 20s ease-in-out infinite 4s}
+.particle-4{left:30%;top:70%;animation:float-particle 16s ease-in-out infinite 1s;
+  background:radial-gradient(circle, rgba(255,108,144,0.8), transparent)}
+.particle-5{left:70%;top:60%;animation:float-particle 22s ease-in-out infinite 3s;
+  background:radial-gradient(circle, rgba(142,255,113,0.8), transparent)}
+#ring-fill{animation:pulse-ring 3s ease-in-out infinite}
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- ══════════════════════════════════
+     LOGIN
+══════════════════════════════════ -->
+<div id="login" class="view overflow-hidden">
+  <!-- Aura bg matching screenshot 2 -->
+  <div class="absolute inset-0 pointer-events-none">
+    <div class="absolute -top-[5%] -left-[20%] w-[90%] h-[65%] aura-c opacity-90"></div>
+    <div class="absolute top-[35%] -right-[25%] w-[80%] h-[65%] aura-m opacity-90"></div>
+    <div class="absolute bottom-[5%] left-[10%] w-[50%] h-[35%] aura-t opacity-50"></div>
+  </div>
+
+  <div class="relative z-10 flex flex-col h-full pt-[env(safe-area-inset-top,0px)]">
+    <!-- Hero — fills upper portion -->
+    <div class="flex-1 flex items-center justify-start px-10">
+      <div>
+        <h1 class="font-head font-black text-[64px] leading-[1.0] tracking-tighter text-white">
+          Your<br/>music,
+        </h1>
+        <h1 class="font-head font-black italic text-[64px] leading-[1.0] tracking-tighter
+                   bg-gradient-to-r from-[#79e3ff] via-[#ff6c90] to-[#8eff71] bg-clip-text text-transparent">
+          sorted.
+        </h1>
+      </div>
+    </div>
+
+    <!-- CTA — pinned to bottom -->
+    <div class="px-8 pb-[max(env(safe-area-inset-bottom,0px),32px)] flex flex-col items-center gap-4">
+      <div id="login-err" class="hidden w-full p-3 rounded-2xl bg-red-500/10 border border-red-500/20
+                                  text-red-300 text-sm text-center font-medium"></div>
+      <button id="btn-connect" onclick="handleConnect()"
+        class="w-full py-5 rounded-full font-head font-extrabold text-xl tracking-tight text-black
+               bg-gradient-to-r from-[#00d9ff] to-[#ff006e]
+               flex items-center justify-center gap-3
+               shadow-[0_0_40px_rgba(0,217,255,.35)]
+               active:scale-95 transition-all duration-300 relative overflow-hidden">
+        <div class="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent pointer-events-none"></div>
+        <span id="btn-lbl">Connect Spotify</span>
+        <span class="mi text-2xl">arrow_forward</span>
+      </button>
+      <p class="text-[10px] font-black tracking-[0.25em] uppercase text-white/40">Private &amp; Secure</p>
+      <p id="redirect-hint" class="text-[9px] text-white/18 text-center px-4 leading-relaxed cursor-pointer"
+         title="Tap to copy Redirect URI"></p>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════
+     AUTH SPINNER
+══════════════════════════════════ -->
+<div id="auth" class="view items-center justify-center gap-6">
+  <div class="absolute inset-0 pointer-events-none">
+    <div class="absolute -top-[10%] -left-[20%] w-[80%] h-[70%] aura-c opacity-60"></div>
+    <div class="absolute top-[40%] -right-[20%] w-[60%] h-[50%] aura-m opacity-50"></div>
+  </div>
+  <div class="relative z-10 flex flex-col items-center gap-5">
+    <div class="w-14 h-14 rounded-full border-[3px] border-[#79e3ff]/20 border-t-[#79e3ff] spin"></div>
+    <p class="font-head font-bold text-sm tracking-[0.2em] uppercase text-white/50">Connecting…</p>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════
+     SORT MODE — Google Stitch design
+══════════════════════════════════ -->
+<div id="sortmode" class="view">
+  <!-- Aura bg matching screenshot 3 -->
+  <div class="absolute inset-0 pointer-events-none">
+    <div class="absolute -top-[20%] -left-[10%] w-[60%] h-[60%] aura-c opacity-70"></div>
+    <div class="absolute top-[40%] -right-[15%] w-[50%] h-[50%] aura-m opacity-50"></div>
+  </div>
+
+  <!-- Top App Bar -->
+  <header class="flex-shrink-0 flex justify-between items-center px-6
+                 pt-[max(env(safe-area-inset-top,0px),16px)] pb-4 relative z-10
+                 bg-black/40 backdrop-blur-md border-b border-white/5">
+    <div class="flex items-center gap-4">
+      <span class="mi text-white cursor-pointer text-2xl">menu</span>
+      <h1 class="text-[26px] font-black tracking-tighter text-[#79e3ff] italic font-head">Sortify</h1>
+    </div>
+    <div class="flex items-center gap-4">
+      <button class="text-white/50 hover:text-[#79e3ff] transition-colors">
+        <span class="mi text-2xl">history</span>
+      </button>
+      <div id="av-sm" class="w-10 h-10 rounded-full bg-[#262626] border border-white/10 overflow-hidden
+                              flex items-center justify-center font-bold text-sm cursor-pointer">—</div>
+    </div>
+  </header>
+
+  <div class="sb relative z-10">
+    <!-- Hero heading -->
+    <section class="px-6 pt-8 pb-4 text-center">
+      <h2 class="text-[42px] font-extrabold tracking-tighter font-head mb-2">
+        How to
+        <span class="bg-gradient-to-r from-[#79e3ff] via-[#ff6c90] to-[#8eff71] bg-clip-text text-transparent">sort?</span>
+      </h2>
+      <p class="text-sm text-white/50 font-body">Choose logic to divide your Liked Songs.</p>
+    </section>
+
+    <!-- Horizontal carousel (5 mode cards) -->
+    <div class="carousel flex gap-5 px-[9%] pb-6 items-stretch" id="sort-carousel">
+
+      <!-- Genre: Cyan -->
+      <div class="c-card glass rounded-3xl p-8 flex flex-col items-center justify-center
+                  relative overflow-hidden group cursor-pointer sm-card"
+           data-mode="genre" data-color="#79e3ff"
+           style="color:#79e3ff">
+        <div class="absolute inset-0 bg-[#79e3ff]/10 opacity-0 group-hover:opacity-100 transition-opacity rounded-3xl"></div>
+        <div class="absolute -top-10 -right-10 w-40 h-40 bg-[#79e3ff]/20 blur-3xl"></div>
+        <div class="mb-10 glow-c">
+          <span class="mi mi-f text-[80px] text-[#79e3ff]">library_music</span>
+        </div>
+        <h3 class="text-[32px] font-black font-head text-[#79e3ff] mb-2">Genre</h3>
+        <p class="text-white/50 text-center font-medium text-sm">Hip-Hop, Pop, Electronic...</p>
+        <div class="absolute bottom-6 flex gap-1.5">
+          <div class="w-1.5 h-1.5 rounded-full bg-[#79e3ff] dot-active"></div>
+          <div class="w-1.5 h-1.5 rounded-full bg-white/20"></div>
+          <div class="w-1.5 h-1.5 rounded-full bg-white/20"></div>
+          <div class="w-1.5 h-1.5 rounded-full bg-white/20"></div>
+          <div class="w-1.5 h-1.5 rounded-full bg-white/20"></div>
+        </div>
+      </div>
+
+      <!-- Energy: Magenta -->
+      <div class="c-card glass rounded-3xl p-8 flex flex-col items-center justify-center
+                  relative overflow-hidden group cursor-pointer sm-card"
+           data-mode="energy" data-color="#ff6c90"
+           style="color:#ff6c90">
+        <div class="absolute inset-0 bg-[#ff6c90]/10 opacity-0 group-hover:opacity-100 transition-opacity rounded-3xl"></div>
+        <div class="absolute -top-10 -right-10 w-40 h-40 bg-[#ff6c90]/20 blur-3xl"></div>
+        <div class="mb-10 glow-m">
+          <span class="mi mi-f text-[80px] text-[#ff6c90]">bolt</span>
+        </div>
+        <h3 class="text-[32px] font-black font-head text-[#ff6c90] mb-2">Energy</h3>
+        <p class="text-white/50 text-center font-medium text-sm">Max Energy, High, Chill...</p>
+        <div class="absolute bottom-6 flex gap-1.5">
+          <div class="w-1.5 h-1.5 rounded-full bg-white/20"></div>
+          <div class="w-1.5 h-1.5 rounded-full bg-[#ff6c90]"></div>
+          <div class="w-1.5 h-1.5 rounded-full bg-white/20"></div>
+          <div class="w-1.5 h-1.5 rounded-full bg-white/20"></div>
+          <div class="w-1.5 h-1.5 rounded-full bg-white/20"></div>
+        </div>
+      </div>
+
+      <!-- Mood: Orange -->
+      <div class="c-card glass rounded-3xl p-8 flex flex-col items-center justify-center
+                  relative overflow-hidden group cursor-pointer sm-card"
+           data-mode="mood" data-color="#fb923c"
+           style="color:#fb923c">
+        <div class="absolute inset-0 bg-orange-500/10 opacity-0 group-hover:opacity-100 transition-opacity rounded-3xl"></div>
+        <div class="absolute -top-10 -right-10 w-40 h-40 bg-orange-500/20 blur-3xl"></div>
+        <div class="mb-10 glow-o">
+          <span class="mi mi-f text-[80px] text-orange-400">mood</span>
+        </div>
+        <h3 class="text-[32px] font-black font-head text-orange-400 mb-2">Mood</h3>
+        <p class="text-white/50 text-center font-medium text-sm">Happy, Dark, Romantic...</p>
+        <div class="absolute bottom-6 flex gap-1.5">
+          <div class="w-1.5 h-1.5 rounded-full bg-white/20"></div>
+          <div class="w-1.5 h-1.5 rounded-full bg-white/20"></div>
+          <div class="w-1.5 h-1.5 rounded-full bg-orange-400"></div>
+          <div class="w-1.5 h-1.5 rounded-full bg-white/20"></div>
+          <div class="w-1.5 h-1.5 rounded-full bg-white/20"></div>
+        </div>
+      </div>
+
+      <!-- Era: Yellow -->
+      <div class="c-card glass rounded-3xl p-8 flex flex-col items-center justify-center
+                  relative overflow-hidden group cursor-pointer sm-card"
+           data-mode="era" data-color="#fde047"
+           style="color:#fde047">
+        <div class="absolute inset-0 bg-yellow-500/10 opacity-0 group-hover:opacity-100 transition-opacity rounded-3xl"></div>
+        <div class="absolute -top-10 -right-10 w-40 h-40 bg-yellow-500/20 blur-3xl"></div>
+        <div class="mb-10 glow-y">
+          <span class="mi mi-f text-[80px] text-yellow-300">schedule</span>
+        </div>
+        <h3 class="text-[32px] font-black font-head text-yellow-300 mb-2">Era</h3>
+        <p class="text-white/50 text-center font-medium text-sm">90s, 00s, 10s, Now...</p>
+        <div class="absolute bottom-6 flex gap-1.5">
+          <div class="w-1.5 h-1.5 rounded-full bg-white/20"></div>
+          <div class="w-1.5 h-1.5 rounded-full bg-white/20"></div>
+          <div class="w-1.5 h-1.5 rounded-full bg-white/20"></div>
+          <div class="w-1.5 h-1.5 rounded-full bg-yellow-300"></div>
+          <div class="w-1.5 h-1.5 rounded-full bg-white/20"></div>
+        </div>
+      </div>
+
+      <!-- Artist: Purple -->
+      <div class="c-card glass rounded-3xl p-8 flex flex-col items-center justify-center
+                  relative overflow-hidden group cursor-pointer sm-card"
+           data-mode="artist" data-color="#c084fc"
+           style="color:#c084fc">
+        <div class="absolute inset-0 bg-purple-500/10 opacity-0 group-hover:opacity-100 transition-opacity rounded-3xl"></div>
+        <div class="absolute -top-10 -right-10 w-40 h-40 bg-purple-500/20 blur-3xl"></div>
+        <div class="mb-10 glow-p">
+          <span class="mi mi-f text-[80px] text-purple-400">person</span>
+        </div>
+        <h3 class="text-[32px] font-black font-head text-purple-400 mb-2">Artist</h3>
+        <p class="text-white/50 text-center font-medium text-sm">Sort by individual artists</p>
+        <div class="absolute bottom-6 flex gap-1.5">
+          <div class="w-1.5 h-1.5 rounded-full bg-white/20"></div>
+          <div class="w-1.5 h-1.5 rounded-full bg-white/20"></div>
+          <div class="w-1.5 h-1.5 rounded-full bg-white/20"></div>
+          <div class="w-1.5 h-1.5 rounded-full bg-white/20"></div>
+          <div class="w-1.5 h-1.5 rounded-full bg-purple-400"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CTA -->
+    <div class="px-6 pb-8 flex flex-col items-center gap-4">
+      <button onclick="startAnalysis()"
+        class="w-full py-5 rounded-full font-head font-extrabold text-xl tracking-tight text-black
+               bg-gradient-to-r from-[#00d9ff] to-[#79e3ff]
+               flex items-center justify-center gap-3
+               shadow-[0_0_30px_rgba(0,217,255,.4)]
+               active:scale-95 transition-all duration-300">
+        <span>Start Sorting</span>
+        <span class="mi text-2xl">arrow_forward</span>
+      </button>
+      <p class="text-[10px] font-black tracking-[0.2em] uppercase text-white/40">
+        <span id="sm-count">—</span> Songs to process
+      </p>
+    </div>
+    <div class="h-[max(env(safe-area-inset-bottom,0px),20px)]"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════
+     ANALYZE — Processing Library
+     (matches screenshot 1 top section)
+══════════════════════════════════ -->
+<div id="analyze" class="view">
+  <div class="absolute inset-0 pointer-events-none overflow-hidden">
+    <div class="absolute -top-[10%] -left-[20%] w-[70%] h-[60%] aura-c opacity-40 animate-blob"></div>
+    <div class="absolute top-[50%] -right-[20%] w-[60%] h-[50%] aura-m opacity-30 animate-blob animation-delay-2000"></div>
+    <!-- Floating particles -->
+    <div class="particle particle-1"></div>
+    <div class="particle particle-2"></div>
+    <div class="particle particle-3"></div>
+    <div class="particle particle-4"></div>
+    <div class="particle particle-5"></div>
+  </div>
+
+  <div class="sb relative z-10">
+    <div class="px-6 pt-[max(env(safe-area-inset-top,0px),24px)] pb-8">
+
+      <!-- Circular progress ring -->
+      <div class="flex justify-center mb-8 a1">
+        <div class="relative">
+          <svg width="160" height="160" viewBox="0 0 160 160">
+            <defs>
+              <linearGradient id="rg" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#79e3ff"/>
+                <stop offset="100%" stop-color="#ff6c90"/>
+              </linearGradient>
+            </defs>
+            <!-- Track -->
+            <circle cx="80" cy="80" r="66" fill="none" stroke="#1a1919" stroke-width="10"/>
+            <!-- Fill -->
+            <circle cx="80" cy="80" r="66" fill="none"
+              stroke="url(#rg)" stroke-width="10" stroke-linecap="round"
+              stroke-dasharray="414.69" stroke-dashoffset="414.69"
+              id="ring-fill" class="ring-circle"/>
+          </svg>
+          <div class="absolute inset-0 flex flex-col items-center justify-center">
+            <span class="font-head font-black text-4xl" id="ring-pct">0%</span>
+            <span class="text-[10px] font-black tracking-[0.2em] uppercase text-white/40 mt-1">SORTING</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section heading -->
+      <h2 class="text-2xl font-black font-head mb-5 a2">Processing library</h2>
+
+      <!-- 4 processing steps -->
+      <div class="flex flex-col gap-3 a2" id="steps-container">
+
+        <div class="step" id="st0">
+          <div class="step-icon" id="st0-icon">
+            <span class="mi text-sm text-white/40">radio_button_unchecked</span>
+          </div>
+          <div class="flex-1">
+            <p class="font-bold text-sm">Liked Songs</p>
+          </div>
+          <span class="text-xs font-bold text-white/40" id="st0-val">—</span>
+        </div>
+
+        <div class="step" id="st1">
+          <div class="step-icon" id="st1-icon">
+            <span class="mi text-sm text-white/40">radio_button_unchecked</span>
+          </div>
+          <div class="flex-1">
+            <p class="font-bold text-sm">Mapping genres</p>
+          </div>
+          <span class="text-xs font-bold text-white/40" id="st1-val">—</span>
+        </div>
+
+        <div class="step" id="st2">
+          <div class="step-icon" id="st2-icon">
+            <span class="mi text-sm text-white/40">radio_button_unchecked</span>
+          </div>
+          <div class="flex-1">
+            <p class="font-bold text-sm">Artist lookup</p>
+          </div>
+          <span class="text-xs font-bold text-white/40" id="st2-val">Pending</span>
+        </div>
+
+        <div class="step" id="st3">
+          <div class="step-icon" id="st3-icon">
+            <span class="mi text-sm text-white/40">radio_button_unchecked</span>
+          </div>
+          <div class="flex-1">
+            <p class="font-bold text-sm">Classifying</p>
+          </div>
+          <span class="text-xs font-bold text-white/40" id="st3-val">Waiting</span>
+        </div>
+
+      </div>
+    </div>
+    <div class="h-[env(safe-area-inset-bottom,0px)]"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════
+     INTELLIGENCE SUMMARY
+     Separate page — shown after analysis completes
+     (matches screenshot 1 middle section)
+══════════════════════════════════ -->
+<div id="intelligence" class="view">
+  <div class="absolute inset-0 pointer-events-none">
+    <div class="absolute -top-[5%] -left-[15%] w-[70%] h-[55%] aura-c opacity-40"></div>
+    <div class="absolute top-[45%] -right-[15%] w-[55%] h-[50%] aura-m opacity-35"></div>
+  </div>
+
+  <div class="sb relative z-10">
+    <div class="px-6 pt-[max(env(safe-area-inset-top,0px),28px)] pb-8">
+
+      <h2 class="text-3xl font-black font-head mb-8 a1">Intelligence Summary</h2>
+
+      <div class="flex flex-col gap-4 a2">
+
+        <!-- Total songs -->
+        <div class="glass-dark rounded-2xl p-6 relative overflow-hidden">
+          <div class="absolute top-4 right-4 opacity-15">
+            <span class="mi mi-f text-[56px] text-[#79e3ff]">library_music</span>
+          </div>
+          <p class="font-head font-black text-[52px] tracking-tighter leading-none"
+             id="int-total">—</p>
+          <p class="text-[10px] font-black tracking-[0.2em] uppercase text-white/40 mt-2">Total Songs</p>
+        </div>
+
+        <!-- Playlists found -->
+        <div class="glass-dark rounded-2xl p-6 relative overflow-hidden">
+          <div class="absolute top-4 right-4 opacity-15">
+            <span class="mi mi-f text-[56px] text-[#ff6c90]">auto_awesome</span>
+          </div>
+          <p class="font-head font-black text-[52px] tracking-tighter leading-none"
+             id="int-playlists">—</p>
+          <p class="text-[10px] font-black tracking-[0.2em] uppercase text-white/40 mt-2">Playlists Found</p>
+        </div>
+
+        <!-- Sorted count -->
+        <div class="glass-dark rounded-2xl p-6 relative overflow-hidden">
+          <!-- Color bar matching screenshot -->
+          <div class="flex items-center gap-1 mb-4">
+            <div class="w-10 h-1.5 rounded-full bg-[#79e3ff]"></div>
+            <div class="w-5 h-1.5 rounded-full bg-[#ff6c90]"></div>
+            <div class="w-3 h-1.5 rounded-full bg-[#8eff71]"></div>
+          </div>
+          <p class="font-head font-black text-[52px] tracking-tighter leading-none">
+            <span id="int-sorted">—</span><span class="text-[28px]">%</span>
+          </p>
+          <p class="text-[10px] font-black tracking-[0.2em] uppercase text-white/40 mt-2">Sorted Count</p>
+        </div>
+      </div>
+
+      <!-- CTA to Refine Playlists -->
+      <div class="mt-8 a3">
+        <button onclick="show('preview')"
+          class="w-full py-5 rounded-full font-head font-extrabold text-xl tracking-tight text-black
+                 bg-gradient-to-r from-[#79e3ff] to-[#00d9ff]
+                 flex items-center justify-center gap-3
+                 shadow-[0_0_30px_rgba(121,227,255,.4)]
+                 active:scale-95 transition-all duration-300">
+          <span>Refine Playlists</span>
+          <span class="mi text-2xl">arrow_forward</span>
+        </button>
+      </div>
+
+    </div>
+    <div class="h-[env(safe-area-inset-bottom,0px)]"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════
+     PREVIEW — Refine Playlists (last success page)
+     (matches screenshot 1 bottom section)
+══════════════════════════════════ -->
+<div id="preview" class="view">
+  <div class="absolute inset-0 pointer-events-none">
+    <div class="absolute -top-[5%] left-[5%] w-[55%] h-[40%] aura-c opacity-25"></div>
+    <div class="absolute bottom-[10%] -right-[10%] w-[45%] h-[40%] aura-m opacity-20"></div>
+  </div>
+
+  <!-- Sticky header -->
+  <header class="flex-shrink-0 flex justify-between items-center px-6
+                 pt-[max(env(safe-area-inset-top,0px),14px)] pb-4 relative z-10
+                 bg-[#0e0e0e]/85 backdrop-blur-md border-b border-white/5">
+    <h2 class="text-xl font-black font-head">Refine Playlists</h2>
+    <span id="pv-badge"
+          class="text-xs font-black tracking-widest uppercase text-[#79e3ff]
+                 bg-[#79e3ff]/10 px-3 py-1.5 rounded-full">— Collections</span>
+  </header>
+
+  <div class="sb relative z-10">
+    <div class="px-5 py-4 flex flex-col gap-4" id="plist">
+      <!-- playlist cards injected dynamically -->
+    </div>
+    <div class="h-32"></div><!-- spacer for sticky footer -->
+    <div class="h-[env(safe-area-inset-bottom,0px)]"></div>
+  </div>
+
+  <!-- Sticky action bar matching screenshot -->
+  <div class="absolute bottom-0 left-0 right-0 z-10
+              bg-gradient-to-t from-[#0e0e0e] via-[#0e0e0e]/96 to-transparent
+              pt-6 pb-[max(env(safe-area-inset-bottom,0px),20px)] px-5">
+    <div class="flex gap-3">
+      <button onclick="goBack()"
+        class="px-6 py-4 rounded-full font-head font-bold text-sm text-white
+               bg-[#1a1919] border border-white/10 active:scale-95 transition-all">
+        REDO
+      </button>
+      <button id="btn-create"
+        class="flex-1 py-4 rounded-full font-head font-extrabold text-sm text-black
+               bg-gradient-to-r from-[#00d9ff] to-[#79e3ff]
+               flex items-center justify-center
+               shadow-[0_0_20px_rgba(0,217,255,.3)]
+               active:scale-95 transition-all disabled:opacity-40 disabled:cursor-not-allowed">
+        <span id="btn-create-lbl">CREATE PLAYLISTS</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════
+     CREATING
+══════════════════════════════════ -->
+<div id="creating" class="view">
+  <div class="absolute inset-0 pointer-events-none">
+    <div class="absolute -top-[10%] -left-[20%] w-[70%] h-[60%] aura-c opacity-35"></div>
+  </div>
+  <header class="flex-shrink-0 flex items-center gap-3 px-6
+                 pt-[max(env(safe-area-inset-top,0px),14px)] pb-4 relative z-10
+                 bg-[#0e0e0e]/85 backdrop-blur-md border-b border-white/5">
+    <div class="w-5 h-5 rounded-full border-2 border-[#79e3ff]/20 border-t-[#79e3ff] spin flex-shrink-0"></div>
+    <h2 class="text-xl font-black font-head">Creating playlists…</h2>
+  </header>
+  <div class="sb relative z-10">
+    <div class="px-5 py-4 flex flex-col gap-3" id="cr-inner"></div>
+    <div class="h-[env(safe-area-inset-bottom,0px)]"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════
+     DONE — Playlist Synced!
+══════════════════════════════════ -->
+<div id="done" class="view">
+  <div class="absolute inset-0 pointer-events-none">
+    <div class="absolute -top-[5%] -left-[20%] w-[80%] h-[60%] aura-c opacity-50"></div>
+    <div class="absolute top-[30%] -right-[20%] w-[70%] h-[60%] aura-m opacity-40"></div>
+    <div class="absolute bottom-[5%] left-[15%] w-[50%] h-[35%] aura-t opacity-25"></div>
+  </div>
+  <div class="sb relative z-10">
+    <div class="px-7 pt-[max(env(safe-area-inset-top,0px),48px)] pb-10
+                flex flex-col items-center text-center gap-6">
+
+      <!-- Checkmark -->
+      <div class="w-24 h-24 rounded-full flex items-center justify-center
+                  bg-gradient-to-br from-[#00d9ff] to-[#ff6c90]
+                  shadow-[0_0_50px_rgba(0,217,255,.45)] bounce-in">
+        <span class="mi mi-f text-5xl text-white">check_circle</span>
+      </div>
+
+      <div class="a1">
+        <p class="text-[10px] font-black tracking-[0.2em] uppercase text-[#79e3ff] mb-3">
+          ● Live on your Spotify Profile
+        </p>
+        <h2 class="text-[40px] font-black font-head tracking-tighter leading-tight
+                   bg-gradient-to-r from-[#79e3ff] via-[#ff6c90] to-[#8eff71]
+                   bg-clip-text text-transparent">
+          PLAYLIST<br/>SYNCED!
+        </h2>
+      </div>
+
+      <p class="text-white/50 text-sm a1" id="done-sub"></p>
+
+      <!-- Results list -->
+      <div class="w-full flex flex-col gap-3 a2" id="done-list"></div>
+
+      <!-- CTAs -->
+      <div class="w-full flex flex-col gap-3 a3 mt-2">
+        <button onclick="window.open('https://open.spotify.com','_blank')"
+          class="w-full py-5 rounded-full font-head font-extrabold text-xl text-black
+                 bg-gradient-to-r from-[#00d9ff] to-[#79e3ff]
+                 shadow-[0_0_30px_rgba(0,217,255,.4)]
+                 active:scale-95 transition-all">
+          Open Spotify ↗
+        </button>
+        <button onclick="goBack()"
+          class="w-full py-4 rounded-full font-head font-bold text-base text-white
+                 bg-[#1a1919] border border-white/10 active:scale-95 transition-all">
+          Back to Home
+        </button>
+      </div>
+    </div>
+    <div class="h-[env(safe-area-inset-bottom,0px)]"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════
+     ERROR
+══════════════════════════════════ -->
+<div id="error" class="view items-center justify-center px-8 text-center gap-5 overflow-y-auto">
+  <div class="absolute inset-0 pointer-events-none">
+    <div class="absolute top-[15%] -left-[10%] w-[60%] h-[50%]"
+         style="background:radial-gradient(circle,rgba(239,68,68,.1) 0%,transparent 70%)"></div>
+  </div>
+  <div class="relative z-10 flex flex-col items-center gap-5 max-w-sm
+              pt-[env(safe-area-inset-top,0px)] pb-[env(safe-area-inset-bottom,0px)]">
+    <div class="w-16 h-16 rounded-full bg-red-500/10 border border-red-500/20
+                flex items-center justify-center">
+      <span class="mi text-red-400 text-3xl">error</span>
+    </div>
+    <h2 class="text-2xl font-black font-head" id="err-title">Something went wrong</h2>
+    <p class="text-white/50 text-sm leading-relaxed whitespace-pre-line" id="err-body"></p>
+
+    <!-- Redirect URI block -->
+    <div class="hidden w-full" id="err-uri-block">
+      <p class="text-[9px] font-black tracking-widest uppercase text-red-400/60 mb-2">Your Redirect URI</p>
+      <div class="bg-[#1a1919] rounded-xl p-3 text-xs text-white/50 break-all cursor-pointer text-center
+                  border border-white/10 active:bg-[#79e3ff]/10 transition-colors"
+           id="err-uri-val"
+           onclick="navigator.clipboard?.writeText(this.dataset.uri).then(()=>{this.textContent='✓ Copied!'})">
+      </div>
+      <p class="text-[9px] text-white/25 mt-2">Must match Spotify Dashboard → Settings → Redirect URIs</p>
+    </div>
+
+    <div class="flex flex-col gap-3 w-full max-w-xs">
+      <button id="err-reconnect" onclick="forceReconnect()" style="display:none"
+        class="w-full py-4 rounded-full font-head font-bold text-base text-black
+               bg-gradient-to-r from-[#00d9ff] to-[#ff6c90] active:scale-95 transition-all">
+        Sign out &amp; reconnect
+      </button>
+      <a id="err-dash" href="https://developer.spotify.com/dashboard" target="_blank" rel="noopener"
+         style="display:none"
+         class="w-full py-3 rounded-full font-head font-bold text-sm text-center text-white
+                bg-[#1a1919] border border-white/10">
+        Open Spotify Dashboard ↗
+      </a>
+      <button onclick="goBack()"
+        class="w-full py-3 rounded-full font-head font-bold text-sm text-white
+               bg-[#1a1919] border border-white/10 active:scale-95 transition-all">
+        ← Back
+      </button>
+    </div>
+    <p class="text-[10px] text-white/20 leading-relaxed max-w-[260px]">
+      Added to Dashboard? Sign out, wait ~15 min, then reconnect.
+    </p>
+  </div>
+</div>
+
+</div><!-- /#app -->
+
+<div id="tc" class="fixed bottom-4 left-1/2 -translate-x-1/2 z-[9999] pointer-events-none
+                    flex flex-col items-center gap-2"
+     style="width:calc(100% - 80px);max-width:310px"></div>
+<canvas id="cvs" style="display:none"></canvas>
+
+<script>
+'use strict';
+
+/* ════════════════════════════════════════
+   GLOBAL ERROR TRAP — no silent blanks ever
+════════════════════════════════════════ */
+window.onerror = function(msg,src,line){
+  console.error('[S] crash:',msg,'@',line);
+  try{showErr('App error',msg);}catch{}
+};
+window.onunhandledrejection = function(ev){
+  const m=ev.reason?.message||String(ev.reason)||'Unknown error';
+  console.error('[S] rejection:',m);
+  const a=document.getElementById('auth');
+  if(a&&a.classList.contains('active')) try{showErr('Connection failed',m);}catch{}
+};
+
+/* ════════════════════════════════════════
+   CONSTANTS  (Spotify Web API — Feb 2026)
+   Docs: https://developer.spotify.com/documentation/web-api
+════════════════════════════════════════ */
+const CLIENT_ID='9b80041f725c4ba0a4b793c074aaab69';
+
+// REDIRECT: must EXACTLY match Spotify Dashboard → Settings → Redirect URIs
+// Simple origin + '/' — no pathname complexity, no trailing-slash ambiguity
+const REDIRECT=window.location.origin+'/';
+
+const SCOPES=[
+  'user-library-read','user-library-modify',
+  'playlist-read-private','playlist-read-collaborative',
+  'playlist-modify-public','playlist-modify-private',
+  'user-read-private','user-read-email','user-top-read',
+].join(' ');
+const AUTH_URL ='https://accounts.spotify.com/authorize';
+const TOKEN_URL='https://accounts.spotify.com/api/token';
+const API      ='https://api.spotify.com/v1';
+
+// Storage — s9_ prefix: fresh key clears all old stale sessions
+const S={
+  g:(k,d=null)=>{try{const v=localStorage.getItem('s9_'+k);return v!==null?JSON.parse(v):d;}catch{return d;}},
+  s:(k,v)=>{try{localStorage.setItem('s9_'+k,JSON.stringify(v));}catch{}},
+  d:(k)=>localStorage.removeItem('s9_'+k),
+  clear(){['at','rt','exp','user'].forEach(k=>S.d(k));},
+};
+
+let me=null,_sortMode='genre',_preview=null;
+
+/* ════════════════════════════════════════
+   DOM UTILITIES
+════════════════════════════════════════ */
+const Q=id=>document.getElementById(id);
+const esc=s=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const ch=(a,n)=>{const r=[];for(let i=0;i<a.length;i+=n)r.push(a.slice(i,i+n));return r;};
+
+function show(id){
+  console.log('[S] show('+id+')');
+  document.querySelectorAll('#app .view').forEach(v=>v.classList.remove('active'));
+  const el=Q(id);
+  if(!el){console.error('[S] #'+id+' not found!');return;}
+  el.classList.add('active');
+  
+  // Initialize carousel when sortmode is shown
+  if(id==='sortmode'){
+    setTimeout(initCarousel,150);
+  }
+}
+
+function syncAv(){
+  if(!me)return;
+  document.querySelectorAll('[id^="av-"]').forEach(el=>{
+    if(me.images?.[0]?.url)el.innerHTML=`<img src="${me.images[0].url}" alt="" class="w-full h-full object-cover rounded-full">`;
+    else el.textContent=(me.display_name||me.id||'U')[0].toUpperCase();
+  });
+}
+
+function goBack(){show(isAuthed()?'sortmode':'login');}
+
+function showErr(t,b){
+  console.error('[S] Error:',t,b);
+  try{Q('err-title').textContent=t;}catch{}
+  try{Q('err-body').textContent=b;}catch{}
+  try{Q('err-reconnect').style.display='none';}catch{}
+  try{Q('err-dash').style.display='none';}catch{}
+  try{
+    Q('err-uri-block').classList.remove('hidden');
+    const uv=Q('err-uri-val');
+    if(uv){uv.textContent=REDIRECT;uv.dataset.uri=REDIRECT;}
+  }catch{}
+  show('error');
+}
+
+/* ════════════════════════════════════════
+   SORT MODE CAROUSEL - Scroll-based selection
+════════════════════════════════════════ */
+function updateCarouselSelection(){
+  const carousel=Q('sort-carousel');
+  if(!carousel)return;
+  
+  const cards=Array.from(carousel.querySelectorAll('.sm-card'));
+  const carouselRect=carousel.getBoundingClientRect();
+  const carouselCenter=carouselRect.left+carouselRect.width/2;
+  
+  let closestCard=null;
+  let minDistance=Infinity;
+  
+  cards.forEach(card=>{
+    const cardRect=card.getBoundingClientRect();
+    const cardCenter=cardRect.left+cardRect.width/2;
+    const distance=Math.abs(carouselCenter-cardCenter);
+    
+    if(distance<minDistance){
+      minDistance=distance;
+      closestCard=card;
+    }
+  });
+  
+  // Remove selected from all cards
+  cards.forEach(c=>c.classList.remove('selected'));
+  
+  // Add selected to closest card (the one in the center)
+  if(closestCard){
+    closestCard.classList.add('selected');
+    _sortMode=closestCard.dataset.mode||'genre';
+    console.log('[S] Selected mode:',_sortMode);
+  }
+}
+
+function initCarousel(){
+  const carousel=Q('sort-carousel');
+  if(!carousel)return;
+  
+  // Update on scroll with throttling
+  let scrollTimeout;
+  const handleScroll=()=>{
+    clearTimeout(scrollTimeout);
+    scrollTimeout=setTimeout(updateCarouselSelection,100);
+  };
+  
+  carousel.addEventListener('scroll',handleScroll,{passive:true});
+  
+  // Update on scroll end (with fallback for browsers without scrollend)
+  if('onscrollend' in carousel){
+    carousel.addEventListener('scrollend',updateCarouselSelection);
+  }
+  
+  // Allow tap to scroll to card center
+  const cards=carousel.querySelectorAll('.sm-card');
+  cards.forEach(card=>{
+    card.addEventListener('click',()=>{
+      card.scrollIntoView({behavior:'smooth',inline:'center',block:'nearest'});
+      setTimeout(updateCarouselSelection,400);
+    });
+  });
+  
+  // Initial selection
+  setTimeout(updateCarouselSelection,200);
+}
+
+// Legacy function for compatibility
+function pickMode(mode,card){
+  _sortMode=mode;
+  if(card)card.scrollIntoView({behavior:'smooth',inline:'center',block:'nearest'});
+}
+
+/* ════════════════════════════════════════
+   PROGRESS RING  (circumference = 2π×66 ≈ 414.69)
+════════════════════════════════════════ */
+const CIRC=414.69;
+function setRing(pct,txt){
+  const ring=Q('ring-fill'),pctEl=Q('ring-pct');
+  if(ring)ring.style.strokeDashoffset=CIRC-(CIRC*Math.min(pct,100)/100);
+  if(pctEl){
+    // Animate percentage counter with scale pulse
+    pctEl.style.transform='scale(1.1)';
+    setTimeout(()=>{pctEl.style.transform='scale(1)';},200);
+    pctEl.textContent=Math.round(pct)+'%';
+  }
+  console.log('[S] Progress:',Math.round(pct)+'%',txt||'');
+}
+
+/* ════════════════════════════════════════
+   STEP STATUS (analyze screen)
+   state: 'act' | 'done' | 'idle'
+════════════════════════════════════════ */
+function setStep(n,state,val){
+  const step=Q('st'+n),icon=Q('st'+n+'-icon'),v=Q('st'+n+'-val');
+  if(!step)return;
+  step.classList.remove('act','done');
+  if(state==='act'){
+    step.classList.add('act');
+    if(icon)icon.innerHTML='<div class="w-4 h-4 rounded-full border-2 border-[#79e3ff]/20 border-t-[#79e3ff] spin"></div>';
+    if(v){v.textContent=val||'';v.className='text-xs font-bold text-[#79e3ff]';}
+  }else if(state==='done'){
+    step.classList.add('done');
+    if(icon)icon.innerHTML='<span class="mi mi-f text-sm text-[#79e3ff]">check_circle</span>';
+    if(v){v.textContent=val||'';v.className='text-xs font-bold text-[#79e3ff]';}
+  }else{
+    if(icon)icon.innerHTML='<span class="mi text-sm text-white/40">radio_button_unchecked</span>';
+    if(v){v.textContent=val||'—';v.className='text-xs font-bold text-white/40';}
+  }
+}
+
+/* ════════════════════════════════════════
+   PKCE HELPERS
+════════════════════════════════════════ */
+const rnd=n=>{const a=new Uint8Array(n);crypto.getRandomValues(a);return btoa(String.fromCharCode(...a)).replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');};
+const chal=async v=>{
+  if(!window.crypto?.subtle)throw new Error('HTTPS required');
+  const h=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(v));
+  return btoa(String.fromCharCode(...new Uint8Array(h))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');
+};
+
+/* ════════════════════════════════════════
+   AUTH FLOW
+   Ref: https://developer.spotify.com/documentation/web-api/tutorials/code-pkce-flow
+════════════════════════════════════════ */
+async function handleConnect(){
+  const btn=Q('btn-connect'),lbl=Q('btn-lbl'),err=Q('login-err');
+  btn.disabled=true;lbl.textContent='Connecting…';
+  err.textContent='';err.classList.add('hidden');
+  try{
+    const v=rnd(64),c=await chal(v),st=rnd(16);
+    S.s('pv',v);S.s('st',st);
+    console.log('[S] → Spotify auth, redirect_uri='+REDIRECT);
+    window.location.href=AUTH_URL+'?'+new URLSearchParams({
+      client_id:CLIENT_ID,response_type:'code',redirect_uri:REDIRECT,
+      scope:SCOPES,state:st,code_challenge_method:'S256',code_challenge:c,
+      show_dialog:'true', // always show — prevents stale cached grant issues
+    });
+  }catch(e){
+    btn.disabled=false;lbl.textContent='Connect Spotify';
+    err.textContent=e.message;err.classList.remove('hidden');
+  }
+}
+
+async function forceReconnect(){S.clear();me=null;await handleConnect();}
+
+async function handleCb(){
+  show('auth');
+  // Capture params BEFORE replaceState
+  const params=new URLSearchParams(location.search);
+  const code=params.get('code'),errCode=params.get('error');
+  try{history.replaceState({},'',location.pathname);}catch{}
+  console.log('[S] handleCb: hasCode='+!!code+' err='+errCode);
+
+  if(errCode||!code){
+    showErr(
+      errCode==='access_denied'?'Login cancelled':'Spotify error',
+      errCode==='access_denied'
+        ?'You cancelled the Spotify login. Tap "Connect Spotify" to try again.'
+        :'Spotify returned: '+(errCode||'no code')+
+         '\n\nCheck that this Redirect URI is registered in Spotify Dashboard:\n'+REDIRECT
+    );return;
+  }
+
+  const verifier=S.g('pv');S.d('pv');S.d('st');
+  if(!verifier){
+    showErr('Session lost',
+      'Login session data was cleared before the callback.\n\n'+
+      'Common in Private/Incognito mode.\n'+
+      'Please tap "Connect Spotify" to start again.');return;
+  }
+
+  try{
+    const body=new URLSearchParams({
+      grant_type:'authorization_code',code,
+      redirect_uri:REDIRECT,client_id:CLIENT_ID,code_verifier:verifier,
+    });
+    // 20-second timeout — prevents silent hang
+    const ctrl=new AbortController();
+    const timer=setTimeout(()=>ctrl.abort(),20000);
+    let resp;
+    try{resp=await fetch(TOKEN_URL,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body,signal:ctrl.signal});}
+    finally{clearTimeout(timer);}
+
+    const tok=await resp.json();
+    console.log('[S] Token status:',resp.status);
+    if(!resp.ok)throw new Error(
+      tok.error==='invalid_grant'?'Login code expired. Tap Connect again.':
+      tok.error==='invalid_client'?'Invalid Client ID. Check code.':
+      'Token exchange failed ('+tok.error+'): '+(tok.error_description||'')+
+      '\n\nCheck Redirect URI in Spotify Dashboard → Settings → Redirect URIs:\n'+REDIRECT
+    );
+
+    S.s('at',tok.access_token);
+    S.s('rt',tok.refresh_token);
+    S.s('exp',Date.now()+(tok.expires_in-60)*1000);
+    console.log('[S] Tokens saved');
+
+    me=await api(API+'/me');
+    S.s('user',me);
+    syncAv();
+    loadSongCount();
+    show('sortmode');
+  }catch(e){
+    if(e.name==='AbortError')showErr('Connection timed out','Spotify took too long. Check internet and try again.');
+    else{showErr('Authentication failed',e.message);try{Q('err-reconnect').style.display='flex';}catch{}}
+  }
+}
+
+async function refreshTok(){
+  const rt=S.g('rt');if(!rt){doLogout();throw new Error('No refresh token');}
+  const b=new URLSearchParams({grant_type:'refresh_token',refresh_token:rt,client_id:CLIENT_ID});
+  const r=await fetch(TOKEN_URL,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:b});
+  const d=await r.json();if(!r.ok){doLogout();throw new Error('Session expired');}
+  S.s('at',d.access_token);S.s('exp',Date.now()+(d.expires_in-60)*1000);
+  if(d.refresh_token)S.s('rt',d.refresh_token);
+  return d.access_token;
+}
+
+const isAuthed=()=>!!(S.g('at')&&S.g('rt'));
+function doLogout(){S.clear();me=null;show('login');}
+
+// Ref: https://developer.spotify.com/documentation/web-api/concepts/api-calls
+async function api(url,opts={}){
+  if(Date.now()>S.g('exp',0))await refreshTok();
+  const tok=S.g('at');
+  const hdrs={'Authorization':`Bearer ${tok}`,...(opts.body?{'Content-Type':'application/json'}:{})};
+  let r=await fetch(url,{...opts,headers:hdrs});
+  if(r.status===401){const nt=await refreshTok();r=await fetch(url,{...opts,headers:{...hdrs,'Authorization':`Bearer ${nt}`}});}
+  // Rate limit: throw — callers decide whether to retry or skip
+  // Ref: https://developer.spotify.com/documentation/web-api/concepts/rate-limits
+  if(r.status===429){const w=parseInt(r.headers.get('Retry-After')||'4',10);const e=new Error(`Rate limited (${w}s)`);e.status=429;throw e;}
+  if(r.status===403){let b={};try{b=await r.clone().json();}catch{}const msg=(b?.error?.message||'').toLowerCase();const e=new Error(b?.error?.message||'403');e.code=(!msg||msg.includes('not registered')||msg.includes('not approved'))?'403_ALLOWLIST':'403';throw e;}
+  if(!r.ok){let b={};try{b=await r.json();}catch{}throw new Error(b?.error?.message||`API ${r.status}`);}
+  if(r.status===204)return null;
+  return r.json();
+}
+
+async function loadSongCount(){
+  try{
+    // GET /me/tracks — Ref: https://developer.spotify.com/documentation/web-api/reference/get-users-saved-tracks
+    const d=await api(`${API}/me/tracks?limit=1`);
+    const el=Q('sm-count');if(el&&d?.total)el.textContent=d.total.toLocaleString();
+  }catch{}
+}
+
+/* ════════════════════════════════════════
+   CLASSIFICATION ENGINE  (unchanged — proven logic)
+   Ref: https://developer.spotify.com/documentation/web-api/reference/get-users-top-artists-and-tracks
+════════════════════════════════════════ */
+const GENRE_B={lofi:{l:'Lo-Fi & Chillhop',e:'☕'},hiphop:{l:'Hip-Hop & Rap',e:'🎤'},rnb:{l:'R&B & Soul',e:'🎵'},electronic:{l:'Electronic & Club',e:'⚡'},ambient:{l:'Ambient & Atmospheric',e:'🌊'},latin:{l:'Latin',e:'💃'},jazz:{l:'Jazz & Blues',e:'🎷'},classical:{l:'Classical',e:'🎼'},metal:{l:'Metal',e:'🤘'},rock:{l:'Rock & Alternative',e:'🎸'},indie:{l:'Indie & Dream Pop',e:'🌿'},country:{l:'Country & Folk',e:'🤠'},reggae:{l:'Reggae & Dancehall',e:'🌴'},kpop:{l:'K-Pop',e:'🌟'},afrobeats:{l:'Afrobeats & World',e:'🌍'},pop:{l:'Pop',e:'🎶'},party:{l:'Party Anthems',e:'🎉'},chill:{l:'Chill',e:'😌'},dark:{l:'Dark & Moody',e:'🖤'},acoustic:{l:'Acoustic',e:'🪵'},misc:{l:'Everything Else',e:'🎵'}};
+const ENERGY_B={max:{l:'Maximum Energy',e:'🔥'},high:{l:'High Energy',e:'⚡'},mid:{l:'Mid Tempo',e:'🎯'},low:{l:'Low & Slow',e:'🌊'},sleep:{l:'Background / Sleep',e:'😴'}};
+const MOOD_B={happy:{l:'Happy & Uplifting',e:'☀️'},dark:{l:'Dark & Intense',e:'🖤'},romantic:{l:'Romantic & Tender',e:'💕'},melancholy:{l:'Melancholic',e:'🌧️'},hype:{l:'Hype & Aggressive',e:'🤬'},chill:{l:'Peaceful & Calm',e:'🍃'}};
+const ERA_B={pre90:{l:'Before the 90s',e:'📻'},nineties:{l:'The 90s',e:'💿'},noughties:{l:'The 2000s',e:'📱'},tens:{l:'The 2010s',e:'📸'},twenties:{l:'2020s',e:'🚀'}};
+const PR=[{k:'lofi',p:['lo-fi','lofi','lo fi','chillhop','chill hop','study beats','sleep beats','lofi beats','beats to study','coffee shop music']},{k:'hiphop',p:['hip hop','hip-hop','rap','trap','drill','grime','boom bap','phonk','plugg','cloud rap','mumble rap','conscious hip hop','gangsta rap','dirty south','crunk','hyphy','uk rap','uk drill','east coast hip hop','west coast hip hop','southern hip hop','memphis rap']},{k:'rnb',p:['r&b','rnb','neo soul','quiet storm','new jack swing','motown','contemporary r&b','alternative r&b','urban contemporary','southern soul','doo-wop']},{k:'ambient',p:['ambient','drone','dark ambient','space ambient','atmospheric','psybient','new age','healing music','meditation','sleep music']},{k:'electronic',p:['edm','techno','house','trance','dubstep','drum and bass','d&b','dnb','electro','synthwave','vaporwave','chillwave','future bass','hardstyle','garage','uk garage','footwork','breakbeat','breakcore','jungle','acid house','industrial','ebm','deep house','tech house','progressive house','minimal techno','detroit techno','chicago house','eurodance','italo disco','nu-disco','glitch','idm','bass music','uk bass','big room','electropop','synthpop','new wave','darkwave','witch house','bass house','psytrance','tropical house']},{k:'latin',p:['latin','reggaeton','salsa','cumbia','bossa nova','bachata','merengue','vallenato','tango','sertanejo','norteno','corrido','banda','mariachi','latin pop','latin hip hop','latin trap','urbano','dembow']},{k:'jazz',p:['jazz','blues','swing','bebop','soul jazz','hard bop','cool jazz','free jazz','jazz fusion','smooth jazz','dixieland','big band','delta blues','chicago blues','electric blues']},{k:'classical',p:['classical','orchestra','chamber music','opera','baroque','romantic period','contemporary classical','choral','film score']},{k:'metal',p:['metal','hardcore','death metal','black metal','doom metal','thrash','sludge metal','post-metal','nu metal','metalcore','deathcore','grindcore','progressive metal','power metal','heavy metal','djent']},{k:'indie',p:['indie pop','dream pop','jangle pop','lo-fi indie','bedroom pop','chamber pop','twee pop','folktronica','indietronica','art pop','shoegaze','noise pop','indie folk']},{k:'rock',p:['rock','punk','grunge','emo','post-punk','post-rock','britpop','garage rock','psychedelic rock','indie rock','alternative rock','hard rock','soft rock','classic rock','folk rock','math rock']},{k:'country',p:['country','folk','bluegrass','americana','outlaw country','alt-country','contemporary country','nashville','celtic','irish folk']},{k:'reggae',p:['reggae','dancehall','ska','dub','ragga','roots reggae']},{k:'kpop',p:['k-pop','j-pop','j-rock','city pop','mandopop','c-pop']},{k:'afrobeats',p:['afrobeats','afropop','amapiano','highlife','afro house','afro swing','worldbeat']}];
+const WR=[{k:'lofi',w:['lofi','chillhop']},{k:'hiphop',w:['rap','trap','drill','grime','phonk','crunk']},{k:'rnb',w:['soul','funk','gospel','motown']},{k:'ambient',w:['ambient','drone','atmospheric','meditation']},{k:'electronic',w:['electronic','electro','techno','house','trance','rave','bass','edm','dnb','dubstep','disco','synthwave','vaporwave']},{k:'latin',w:['latin','reggaeton','cumbia','salsa','bachata','sertanejo','tango','bossa']},{k:'jazz',w:['jazz','blues','bebop','swing']},{k:'classical',w:['classical','orchestral','baroque','opera','symphony']},{k:'metal',w:['metal','metalcore','hardcore','grindcore','deathcore']},{k:'indie',w:['indie','shoegaze','dreampop']},{k:'rock',w:['rock','punk','grunge','emo','britpop']},{k:'country',w:['country','folk','bluegrass','americana']},{k:'reggae',w:['reggae','dancehall','ska','dub']},{k:'kpop',w:['kpop','jpop','jrock','mandopop']},{k:'afrobeats',w:['afrobeats','afropop','amapiano','afro']},{k:'pop',w:['pop']}];
+const tokG=s=>s.toLowerCase().split(/[\s\-\/&,_]+/).filter(w=>w.length>1);
+function simN(a,b){a=a.toLowerCase().replace(/[^a-z0-9 ]/g,'').trim();b=b.toLowerCase().replace(/[^a-z0-9 ]/g,'').trim();if(a===b)return 1;if(a.includes(b)||b.includes(a))return .85;const wa=new Set(a.split(' ')),wb=new Set(b.split(' '));const i=[...wa].filter(w=>wb.has(w)).length,u=new Set([...wa,...wb]).size;return u>0?i/u:0;}
+function classifyGenre(t,aG){const gs=new Set();(t.artists||[]).forEach(a=>(aG[a.id]||[]).forEach(g=>gs.add(g.toLowerCase())));if(gs.size>0){for(const{k,p}of PR)for(const ph of p)if([...gs].some(g=>g.includes(ph)))return k;const ws=new Set([...gs].flatMap(g=>tokG(g)));for(const{k,w}of WR)for(const wd of w)if(ws.has(wd))return k;}const an=(t.artists||[]).map(a=>(a.name||'').toLowerCase()).join(' ');if(/\b(lo[ -]?fi|chillhop)\b/.test(an))return 'lofi';if(/^(lil |young |big |yung |mc |playboi |polo |kodak |gunna |nba |juice |pop smoke|a\$ap|asap |uzi |carti |travis scott|tyler the|kendrick |drake|kanye|jay.z|eminem|snoop|chance |childish|wale |meek |rick ross|nicki |cardi |megan |doja |saweetie|future |21 savage|offset |quavo|takeoff|roddy)/i.test(an))return 'hiphop';if(/\b(dj |mc )\b/i.test(an))return 'electronic';if(/^(deadmau5|skrillex|diplo|calvin harris|martin garrix|avicii|tiesto|tiësto|armin|david guetta|marshmello|kygo|zedd|chainsmokers|flume|odesza|rufus du sol|disclosure|four tet|bonobo|aphex|burial|james blake|moderat|caribou|bicep)/i.test(an))return 'electronic';if(/\b(bts|exo|got7|nct|aespa|twice|blackpink|stray kids|ateez|shinee|red velvet|itzy|txt|seventeen|mamamoo|monsta x|bigbang)\b/i.test(an))return 'kpop';if(/\b(bad bunny|j balvin|ozuna|maluma|daddy yankee|luis fonsi|nicky jam|anuel|farruko|arcangel|don omar|pitbull)\b/i.test(an))return 'latin';if(/\b(frank sinatra|miles davis|john coltrane|ella fitzgerald|nat king|billie holiday|louis armstrong|chet baker)\b/i.test(an))return 'jazz';const ti=(t.name||'').toLowerCase(),al=(t.album?.name||'').toLowerCase(),cb=ti+' '+al;if(/\b(lo[ -]?fi|lofi|chill beats?|study beats?)\b/.test(cb))return 'lofi';if(/\b(freestyle|cypher|diss track)\b/.test(ti))return 'hiphop';if(/\b(remix|bootleg|club mix|radio edit|extended mix)\b/.test(ti))return 'electronic';if(/\b(acoustic|unplugged|stripped|piano version)\b/.test(cb))return 'acoustic';if(/\b(instrumental|soundtrack|ost|score)\b/.test(cb))return 'classical';if(/\b(amor|corazón|bailar|quiero|contigo|siempre|noche)\b/.test(cb))return 'latin';if(/\b(christmas|xmas|jingle|santa)\b/.test(cb))return 'misc';const pop=t.popularity||50,dur=(t.duration_ms||210000)/60000;if(pop>=72&&dur<3.2)return 'party';if(pop>=60&&dur<3.5)return 'pop';if(pop>=50&&dur<4.5)return 'pop';if(dur>6)return 'ambient';if(dur>5)return 'chill';if(pop<20)return 'dark';if(pop<35)return 'indie';return 'chill';}
+function classifyEnergy(t){const pop=t.popularity||50,dur=(t.duration_ms||210000)/60000;if(pop>=80&&dur<3.5)return 'max';if(pop>=65)return 'high';if(pop>=40&&dur<5)return 'mid';if(dur>5||pop<30)return 'low';return 'sleep';}
+function classifyMood(t,aG){const gs=new Set();(t.artists||[]).forEach(a=>(aG[a.id]||[]).forEach(g=>gs.add(g.toLowerCase())));const gs2=[...gs].join(' '),ti=(t.name||'').toLowerCase(),pop=t.popularity||50,dur=(t.duration_ms||210000)/60000;if(/metal|hardcore|death|black metal|thrash|drill|phonk/.test(gs2))return 'hype';if(/\b(love|heart|kiss|tender|sweet|baby|romance)\b/.test(ti))return 'romantic';if(/dark ambient|doom|sad|melanchol|emo/.test(gs2))return 'melancholy';if(/\b(sad|miss|gone|alone|broken|hurt|cry|goodbye|lost)\b/.test(ti))return 'melancholy';if(pop>=70&&dur<3.5)return 'happy';if(pop<25)return 'dark';if(dur>5)return 'chill';return 'happy';}
+function classifyEra(t){const y=parseInt((t.album?.release_date||'2020').slice(0,4),10)||2020;if(y<1990)return 'pre90';if(y<2000)return 'nineties';if(y<2010)return 'noughties';if(y<2020)return 'tens';return 'twenties';}
+function getBucketInfo(key,mode,track){if(mode==='genre')return GENRE_B[key]?{l:GENRE_B[key].l,e:GENRE_B[key].e}:{l:'Everything Else',e:'🎵'};if(mode==='energy')return ENERGY_B[key]||{l:'Other',e:'🎵'};if(mode==='mood')return MOOD_B[key]||{l:'Other',e:'🎵'};if(mode==='era')return ERA_B[key]||{l:'Other',e:'🎵'};if(mode==='artist'){const a=track?.artists?.[0];return a?{l:a.name,e:'🎤'}:{l:'Other',e:'🎤'};}return{l:'Other',e:'🎵'};}
+const MIN_SIZE=3;
+
+/* ════════════════════════════════════════
+   ANALYSIS FLOW
+   Spotify API refs used:
+   GET /me/tracks         — user's saved tracks
+   GET /me/top/artists    — top artists with genre data
+   GET /artists/{id}      — individual artist lookup (post-Feb 2026 safe)
+   POST /me/playlists     — create playlist
+   POST /playlists/{id}/items — add tracks
+════════════════════════════════════════ */
+async function startAnalysis(){
+  if(!isAuthed()){show('login');return;}
+  show('analyze');
+  setRing(0,'Start');
+  setStep(0,'idle');setStep(1,'idle');setStep(2,'idle','Pending');setStep(3,'idle','Waiting');
+  const mode=_sortMode;
+
+  try{if(!me){me=S.g('user')||await api(`${API}/me`);S.s('user',me);}syncAv();}catch(e){h403(e);return;}
+
+  try{
+    // Phase 0 — Load liked songs
+    // GET /me/tracks: https://developer.spotify.com/documentation/web-api/reference/get-users-saved-tracks
+    setStep(0,'act','Loading…');
+    const songs=[];let url=`${API}/me/tracks?limit=50`;
+    while(url){
+      const d=await api(url);if(!d?.items?.length)break;
+      d.items.forEach(i=>{if(i?.track?.id)songs.push(i.track);});
+      url=d.next;
+      setStep(0,'act',songs.length.toLocaleString()+' detected');
+      setRing(Math.min(14,(songs.length/200)*14),'Loading songs');
+    }
+    setStep(0,'done',songs.length.toLocaleString()+' detected');
+    setRing(15,'Mapping genres');
+    // Update sort mode count
+    const sc=Q('sm-count');if(sc)sc.textContent=songs.length.toLocaleString();
+
+    // Phase 1 — Top artists (richest genre source)
+    // GET /me/top/artists: https://developer.spotify.com/documentation/web-api/reference/get-users-top-artists-and-tracks
+    setStep(1,'act','Fetching…');
+    const aG={},aNames={};
+    songs.forEach(t=>(t.artists||[]).forEach(a=>{if(a.id)aNames[a.id]=a.name;}));
+    for(const range of['long_term','medium_term','short_term']){
+      try{
+        const d=await api(`${API}/me/top/artists?limit=50&time_range=${range}`);
+        (d?.items||[]).forEach(a=>{if(a?.id&&(a.genres||[]).length>0)aG[a.id]=[...new Set([...(aG[a.id]||[]),...a.genres])];});
+        setStep(1,'act',Object.keys(aG).length+' mapped');
+        await sleep(150);
+      }catch(e){console.warn('top',range,e.message);}
+    }
+    setStep(1,'done',Object.keys(aG).length+' mapped');
+    setRing(28,'Artist lookup');
+
+    // Phase 2 — Individual artist lookup (GET /artists/{id})
+    // Note: GET /artists batch was REMOVED Feb 2026 — use single endpoint
+    // Ref: https://developer.spotify.com/documentation/web-api/reference/get-an-artist
+    setStep(2,'act','0%');
+    const unmapped=Object.keys(aNames).filter(id=>!(aG[id]||[]).length);
+    const MAX=60; // cap: ~17s max at 280ms/req
+    const toFetch=unmapped.slice(0,MAX);
+    let fetched=0;
+    for(const artistId of toFetch){
+      try{
+        const ctrl=new AbortController();
+        const timer=setTimeout(()=>ctrl.abort(),3000);
+        const resp=await fetch(`${API}/artists/${artistId}`,{
+          headers:{'Authorization':`Bearer ${S.g('at')}`},signal:ctrl.signal
+        });
+        clearTimeout(timer);
+        if(resp.ok){const a=await resp.json();if((a.genres||[]).length>0)aG[artistId]=a.genres;}
+      }catch{}
+      fetched++;
+      const pct=Math.round(fetched/Math.max(toFetch.length,1)*100);
+      setStep(2,'act',pct+'%');
+      setRing(28+(fetched/Math.max(toFetch.length,1))*38,'Artist lookup');
+      await sleep(280);
+    }
+    const withG=Object.keys(aG).filter(id=>(aG[id]||[]).length>0).length;
+    setStep(2,'done',withG+' matched');
+    setRing(67,'Classifying');
+
+    // Phase 3 — Classify all tracks
+    setStep(3,'act','Working…');
+    const buckets=new Map();
+    songs.forEach((t,i)=>{
+      let key;
+      if(mode==='genre')key=classifyGenre(t,aG);
+      else if(mode==='energy')key=classifyEnergy(t);
+      else if(mode==='mood')key=classifyMood(t,aG);
+      else if(mode==='era')key=classifyEra(t);
+      else if(mode==='artist')key=t.artists?.[0]?.id||'misc';
+      else key=classifyGenre(t,aG);
+      const info=getBucketInfo(key,mode,t);
+      if(!buckets.has(key))buckets.set(key,{info:{key,...info},tracks:[]});
+      buckets.get(key).tracks.push(t);
+      if(i%60===0)setRing(67+(i/songs.length)*30,'Classifying');
+    });
+    setStep(3,'done',songs.length.toLocaleString()+' sorted');
+    setRing(100,'Done!');
+
+    _preview={buckets,total:songs.length,mode};
+    await sleep(500);
+
+    // Show Intelligence Summary (separate page)
+    populateIntelligence();
+    show('intelligence');
+
+  }catch(e){h403(e);}
+}
+
+function populateIntelligence(){
+  if(!_preview)return;
+  const{buckets,total,mode}=_preview;
+  const sorted=[...buckets.values()].filter(v=>v.tracks.length>=MIN_SIZE).sort((a,b)=>b.tracks.length-a.tracks.length);
+  const sortedN=sorted.reduce((a,v)=>a+v.tracks.length,0);
+  const pct=Math.round(sortedN/total*100);
+  window._pd=sorted;
+
+  // Populate intelligence stats
+  try{Q('int-total').textContent=total.toLocaleString();}catch{}
+  try{Q('int-playlists').textContent=sorted.length;}catch{}
+  try{Q('int-sorted').textContent=pct;}catch{}
+
+  // Pre-build the preview (refine playlists) page
+  buildRefineList(sorted);
+  // Update badge
+  const badge=Q('pv-badge');if(badge)badge.textContent=sorted.length+' Collections';
+}
+
+function buildRefineList(sorted){
+  const container=Q('plist');if(!container)return;
+
+  container.innerHTML=sorted.map((v,i)=>{
+    // Genre tag chips — extract keywords from bucket label
+    const tags=v.info.l.split(' & ').slice(0,2).map(tag=>
+      `<span class="inline-block px-2 py-0.5 rounded text-[10px] font-black tracking-widest uppercase"
+             style="background:rgba(121,227,255,.12);color:#79e3ff">${tag.toUpperCase()}</span>`
+    ).join(' ');
+
+    // Sample track names
+    const samples=v.tracks.slice(0,2).map(t=>
+      `<p class="text-xs text-white/40 truncate">${esc(t.name)} · ${esc(t.artists?.[0]?.name||'')}</p>`
+    ).join('');
+
+    return`<div class="pcard" id="pc${i}">
+      <div class="flex items-center gap-4 p-4">
+        <!-- Album art placeholder with emoji -->
+        <div class="w-[68px] h-[68px] rounded-xl flex-shrink-0 flex items-center justify-center text-3xl
+                    bg-gradient-to-br from-[#1a1919] to-[#0e0e0e] border border-white/5">
+          ${v.info.e}
+        </div>
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center gap-1.5 mb-0.5">
+            <input class="pn-inp font-head font-bold text-[15px]"
+                   id="pn${i}" value="${esc(v.info.l)}" maxlength="60"/>
+            <span class="mi text-xs text-white/30 flex-shrink-0">edit</span>
+          </div>
+          <p class="text-xs text-white/40 mb-2">${v.tracks.length} Tracks</p>
+          <div class="flex gap-1 flex-wrap">${tags}</div>
+        </div>
+        <label class="relative w-11 h-6 flex-shrink-0">
+          <input type="checkbox" class="tog-in opacity-0 w-0 h-0 absolute"
+                 id="pt${i}" checked onchange="togCard(${i},this.checked)"/>
+          <div class="tog-tr"></div>
+        </label>
+      </div>
+      <div class="px-4 pb-3 flex flex-col gap-0.5">${samples}</div>
+    </div>`;
+  }).join('');
+
+  updBtn();
+}
+
+function togCard(i,on){Q(`pc${i}`)?.classList.toggle('off',!on);updBtn();}
+function updBtn(){
+  const d=window._pd||[];
+  const n=d.filter((_,i)=>Q(`pt${i}`)?.checked!==false).length;
+  const btn=Q('btn-create');if(!btn)return;
+  btn.disabled=n===0;
+  Q('btn-create-lbl').textContent=n>0?`CREATE ${n} PLAYLIST${n!==1?'S':''}`:'SELECT AT LEAST ONE';
+}
+
+/* ════════════════════════════════════════
+   CREATE PLAYLISTS
+   POST /me/playlists:      https://developer.spotify.com/documentation/web-api/reference/create-playlist
+   POST /playlists/{id}/items: https://developer.spotify.com/documentation/web-api/reference/add-items-to-playlist
+════════════════════════════════════════ */
+Q('btn-create').addEventListener('click',async()=>{
+  const btn=Q('btn-create');btn.disabled=true;
+  Q('btn-create-lbl').textContent='CREATING…';
+
+  const d=window._pd||[];
+  const toCreate=d.filter((_,i)=>Q(`pt${i}`)?.checked!==false)
+    .map(v=>{const gi=d.indexOf(v);return{...v,name:(Q(`pn${gi}`)?.value||'').trim()||v.info.l};});
+
+  Q('cr-inner').innerHTML=toCreate.map((v,i)=>
+    `<div class="flex items-center gap-4 p-4 rounded-2xl bg-[#131313]" id="cs${i}">
+      <div class="w-9 h-9 rounded-xl flex items-center justify-center bg-[#262626] flex-shrink-0 text-xl">${v.info.e}</div>
+      <span class="flex-1 font-bold text-sm">${esc(v.name)}</span>
+      <div class="w-4 h-4 rounded-full border-2 border-[#79e3ff]/20 border-t-[#79e3ff] spin" id="css${i}"></div>
+      <span class="text-xs font-bold hidden" id="cst${i}"></span>
+    </div>`
+  ).join('');
+
+  show('creating');syncAv();
+  const results=[];let errs=0;
+
+  for(let i=0;i<toCreate.length;i++){
+    const v=toCreate[i];
+    try{
+      // Create playlist via POST /me/playlists (not deprecated /users/{id}/playlists)
+      const pl=await api(`${API}/me/playlists`,{
+        method:'POST',
+        body:JSON.stringify({
+          name:v.name,
+          description:`Sorted by Sortify · ${v.tracks.length} songs · ${new Date().toLocaleDateString()}`,
+          public:false,
+        }),
+      });
+      // Add tracks via POST /playlists/{id}/items (correct post-Feb 2026 endpoint)
+      for(const bat of ch(v.tracks.map(t=>`spotify:track:${t.id}`),100)){
+        await api(`${API}/playlists/${pl.id}/items`,{method:'POST',body:JSON.stringify({uris:bat})});
+        await sleep(60);
+      }
+      // Mark done
+      Q(`css${i}`).classList.add('hidden');
+      const cst=Q(`cst${i}`);
+      if(cst){cst.textContent='✓ '+v.tracks.length;cst.className='text-xs font-bold text-[#79e3ff]';cst.classList.remove('hidden');}
+      results.push({name:v.name,count:v.tracks.length,emoji:v.info.e});
+    }catch(e){
+      Q(`css${i}`).classList.add('hidden');
+      const cst=Q(`cst${i}`);
+      if(cst){cst.textContent='Failed';cst.className='text-xs font-bold text-red-400';cst.classList.remove('hidden');}
+      errs++;console.error(e);
+    }
+    await sleep(120);
+  }
+
+  await sleep(600);
+  const tot=results.reduce((a,r)=>a+r.count,0);
+  try{Q('done-sub').textContent=`${tot.toLocaleString()} songs across ${results.length} playlist${results.length!==1?'s':''} — live on Spotify.`;}catch{}
+  try{Q('done-list').innerHTML=results.map(r=>
+    `<div class="flex items-center gap-3 p-4 rounded-2xl bg-[#131313]">
+      <div class="w-10 h-10 rounded-xl bg-[#262626] flex items-center justify-center text-xl flex-shrink-0">${r.emoji}</div>
+      <span class="flex-1 font-bold text-sm text-left">${esc(r.name)}</span>
+      <span class="text-sm font-black text-[#79e3ff]">${r.count}</span>
+    </div>`
+  ).join('');}catch{}
+
+  syncAv();show('done');
+});
+
+/* ════════════════════════════════════════
+   403 HANDLER
+════════════════════════════════════════ */
+function h403(e){
+  show('error');
+  if((e.code||'').startsWith('403')||(e.message||'').includes('403')){
+    try{Q('err-title').textContent='403 — Spotify refused';}catch{}
+    try{Q('err-body').textContent='Your session token was created before your account was added to the app allowlist.\n\nTap "Sign out & reconnect" for a fresh token.\n\nWait ~15 min after adding yourself to the Dashboard first.';}catch{}
+    try{Q('err-reconnect').style.display='flex';Q('err-dash').style.display='block';}catch{}
+  }else{
+    try{Q('err-title').textContent='Something went wrong';Q('err-body').textContent=e.message||'Unknown error.';}catch{}
+  }
+  try{Q('err-uri-block').classList.remove('hidden');const uv=Q('err-uri-val');if(uv){uv.textContent=REDIRECT;uv.dataset.uri=REDIRECT;}}catch{}
+}
+
+function toast(msg,type='ok'){
+  const c=Q('tc'),el=document.createElement('div');
+  el.className=`px-4 py-2 rounded-full text-xs font-bold shadow-lg ${type==='ok'?'bg-[#131313] text-[#79e3ff] border border-[#79e3ff]/30':'bg-[#131313] text-red-300 border border-red-500/25'}`;
+  el.textContent=msg;c.appendChild(el);
+  setTimeout(()=>el.remove(),3500);
+}
+
+/* ════════════════════════════════════════
+   SERVICE WORKER — production version
+   CRITICAL: unregisters ALL old workers unconditionally
+   Old sw.js (uploaded) caches navigate requests = OAuth callback blank screen bug
+════════════════════════════════════════ */
+if('serviceWorker' in navigator){
+  window.addEventListener('load',async()=>{
+    try{
+      // Forcibly unregister EVERY existing SW (prevents old stale SW from
+      // intercepting Spotify OAuth callback with cached HTML)
+      const regs=await navigator.serviceWorker.getRegistrations();
+      await Promise.all(regs.map(r=>r.unregister()));
+      if(regs.length>0)console.log('[S] Cleared',regs.length,'old SW(s)');
+      await navigator.serviceWorker.register('/sw.js',{updateViaCache:'none'});
+    }catch(e){console.warn('[S] SW:',e.message);}
+  });
+}
+
+/* ════════════════════════════════════════
+   BOOT
+════════════════════════════════════════ */
+(async()=>{
+  // Show redirect URI on login (tappable to copy)
+  try{
+    const rh=Q('redirect-hint');
+    if(rh){
+      rh.textContent='Redirect URI: '+REDIRECT;
+      rh.onclick=()=>navigator.clipboard?.writeText(REDIRECT).then(()=>{
+        rh.textContent='✓ Copied! Add this to Spotify Dashboard → Settings → Redirect URIs';
+        setTimeout(()=>{rh.textContent='Redirect URI: '+REDIRECT;},3000);
+      });
+    }
+  }catch{}
+
+  const p=new URLSearchParams(location.search);
+  console.log('[S] Boot. REDIRECT='+REDIRECT+' hasCode='+p.has('code')+' authed='+isAuthed());
+
+  if(p.has('code')||p.has('error')){
+    await handleCb();
+  }else if(isAuthed()){
+    me=S.g('user');
+    syncAv();
+    loadSongCount();
+    show('sortmode');
+  }else{
+    show('login');
+  }
+})().catch(e=>{
+  console.error('[S] Boot failed:',e);
+  try{showErr('Startup error',e.message);}catch{try{show('login');}catch{}}
+});
+</script>
+</body>
+</html>
